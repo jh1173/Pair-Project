@@ -1,12 +1,13 @@
 package main;
 
 /**
- * The Uno game, and the user interface
+ * The Uno game
  */
 public class Game {
 	
-	public static void main(String[] args) {
-		
-	}
+	// Set up Deck and Pile
+	// Create Players
+	// Pick a player to go first
+	// The next player gets a turn until someone wins
 
 }
