@@ -73,6 +73,10 @@ public class Player {
 		// action cards, end turn
 		// select card OR draw from deck
 		// play card if desired/possible
+		if (topCard.getRankIndex() == 10) {
+			drawCard(deck);
+			drawCard(deck);
+		}
 	}
 
 }
