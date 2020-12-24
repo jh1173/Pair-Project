@@ -46,6 +46,10 @@ public class Pile {
 		return newDeck;
 	}
 	
+	/**
+	 * Remove all cards from the pile and add a card from the deck
+	 * @param deck the deck
+	 */
 	public void hardReset(Deck deck) {
 		pile.clear();
 		pile.add(deck.deal());

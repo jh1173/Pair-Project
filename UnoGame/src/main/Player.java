@@ -27,6 +27,11 @@ public class Player {
 		return hand;
 	}
 	
+	/**
+	 * Clear the player's hand and fill it with seven cards from the deck
+	 * @param deck the deck from which the player draws cards
+	 * @param pile the pile onto which the player plays cards
+	 */
 	public void fillHand(Deck deck, Pile pile) {
 		hand.getCards().clear();
 		for (int i = 0; i < 7; i++) {

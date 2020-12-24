@@ -85,18 +85,34 @@ public class Card {
 		return matchesColor(other) || matchesRank(other) || hasRank(Rank.WILD);
 	}
 	
+	/**
+	 * @param rank a rank
+	 * @return the card has the given rank
+	 */
 	public boolean hasRank(Rank rank) {
 		return this.rank.equals(rank);
 	}
 	
+	/**
+	 * @param other the other card
+	 * @return the card has the same rank as the other card
+	 */
 	public boolean matchesRank(Card other) {
 		return hasRank(other.getRank());
 	}
 	
+	/**
+	 * @param color a color
+	 * @return the card has the given color
+	 */
 	public boolean hasColor(Color color) {
 		return this.color.equals(color);
 	}
 	
+	/**
+	 * @param other the other card
+	 * @return the card has the same color as the other card
+	 */
 	public boolean matchesColor(Card other) {
 		return hasColor(other.getColor());
 	}

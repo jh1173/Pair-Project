@@ -29,6 +29,9 @@ public class Deck {
 		addNonWildDraw4s();
 	}
 	
+	/**
+	 * Add all the non-wild draw 4 cards (specified in the constructor)
+	 */
 	public void addNonWildDraw4s() {
 		for (Color color: Color.values()) {
 			// don't add NONE
@@ -93,6 +96,10 @@ public class Deck {
 		}
 	}
 	
+	/**
+	 * Clear the deck and add back all the cards except for wild draw 4s<br>
+	 * Be sure to add the wild draw 4s after setting the first card of the deck
+	 */
 	public void hardReset() {
 		deck.clear();
 		addNonWildDraw4s();
