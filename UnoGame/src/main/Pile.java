@@ -45,5 +45,10 @@ public class Pile {
 		pile.add(topCard);
 		return newDeck;
 	}
+	
+	public void hardReset(Deck deck) {
+		pile.clear();
+		pile.add(deck.deal());
+	}
 
 }

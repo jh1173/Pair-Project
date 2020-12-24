@@ -5,19 +5,6 @@ package main;
  */
 public class Card {
 	
-	/**
-	 * Card Color constants<br>
-	 * Card.Color.NONE represents the color of unassigned wild cards
-	 */
-	public static enum Color {
-		RED, GREEN, BLUE, YELLOW, NONE
-	}
-	/**
-	 * Card Rank constants
-	 */
-	public static enum Rank {
-		NUM0, NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9, DRAW_TWO, REVERSE, SKIP, WILD, WILD_DRAW_FOUR
-	}
 	/** Point values of Cards */
 	private static int[] points = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 20, 20, 20, 50, 50};
 	/** Card rank */
@@ -91,11 +78,27 @@ public class Card {
 	
 	/**
 	 * @param other the other card for comparison
-	 * @return the card matches the other card in color or rank
-	 * <p>Note: Wild cards (not wild draw fours) will always match the other card (not necessarily symmetric)
+	 * @return the card can be played on the other card (by matching in color or rank)
+	 * <p>Note: Wild cards (but not wild draw fours) will always match the other card (not necessarily symmetric)
 	 */
 	public boolean matches(Card other) {
-		return color.equals(other.getColor()) || rank.equals(other.getRank()) || rank.equals(Rank.WILD);
+		return matchesColor(other) || matchesRank(other) || hasRank(Rank.WILD);
+	}
+	
+	public boolean hasRank(Rank rank) {
+		return this.rank.equals(rank);
+	}
+	
+	public boolean matchesRank(Card other) {
+		return hasRank(other.getRank());
+	}
+	
+	public boolean hasColor(Color color) {
+		return this.color.equals(color);
+	}
+	
+	public boolean matchesColor(Card other) {
+		return hasColor(other.getColor());
 	}
 	
 	/**
@@ -114,7 +117,7 @@ public class Card {
 	
 	/**
 	 * @param rank the rank
-	 * @return whether the rank represents an action card
+	 * @return whether the rank represents an action card (draw two, reverse, skip, wild draw four)
 	 */
 	public static boolean isActionRank(Rank rank) {
 		int rankIndex = rank.ordinal();

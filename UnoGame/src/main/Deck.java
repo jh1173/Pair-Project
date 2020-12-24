@@ -26,22 +26,26 @@ public class Deck {
 	 */
 	public Deck() {
 		deck = new ArrayList<>();
-		for (Card.Color color: Card.Color.values()) {
+		addNonWildDraw4s();
+	}
+	
+	public void addNonWildDraw4s() {
+		for (Color color: Color.values()) {
 			// don't add NONE
-			if (!color.equals(Card.Color.NONE)) {
+			if (!color.equals(Color.NONE)) {
 				// add one zero
-				deck.add(new Card(Card.Rank.NUM0, color));
+				deck.add(new Card(Rank.NUM0, color));
 				// add two of each of the other number and action cards
-				for (Card.Rank rank: Card.Rank.values()) {
-					if (!rank.equals(Card.Rank.NUM0) && !Card.isWildRank(rank)) {
+				for (Rank rank: Rank.values()) {
+					if (!rank.equals(Rank.NUM0) && !Card.isWildRank(rank)) {
 						deck.add(new Card(rank, color));
 					}
 				}
 			}
-			// add wild cards
-			for (int i = 0; i < 4; i++) {
-				deck.add(new Card(Card.Rank.WILD, Card.Color.NONE));
-			}
+		}
+		// add wild cards
+		for (int i = 0; i < 4; i++) {
+			deck.add(new Card(Rank.WILD, Color.NONE));
 		}
 		Collections.shuffle(deck);
 	}
@@ -52,7 +56,7 @@ public class Deck {
 	 */
 	public void addWildDraw4s() {
 		for (int i = 0; i < 4; i++) {
-			deck.add(new Card(Card.Rank.WILD_DRAW_FOUR, Card.Color.NONE));
+			deck.add(new Card(Rank.WILD_DRAW_FOUR, Color.NONE));
 		}
 		Collections.shuffle(deck);
 	}
@@ -84,9 +88,14 @@ public class Deck {
 				card.setActive(true);
 			}
 			if (card.isWildCard()) {
-				card.setColor(Card.Color.NONE);
+				card.setColor(Color.NONE);
 			}
 		}
+	}
+	
+	public void hardReset() {
+		deck.clear();
+		addNonWildDraw4s();
 	}
 
 }

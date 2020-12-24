@@ -12,13 +12,9 @@ public class Hand {
 	
 	/**
 	 * Create a hand using cards from deck
-	 * @param deck
 	 */
-	public Hand(Deck deck) {
+	public Hand() {
 		hand = new ArrayList<>();
-		for (int i = 0; i < 7; i++) {
-			hand.add(deck.deal());
-		}
 	}
 	
 	/**
@@ -39,7 +35,7 @@ public class Hand {
 	
 	/**
 	 * Remove a card from the hand
-	 * @param card the cardto be removed
+	 * @param card the card to be removed
 	 * @return whether the card was removed successfully
 	 */
 	public boolean removeCard(Card card) {
@@ -68,19 +64,17 @@ public class Hand {
 		ArrayList<Card> wd4s = new ArrayList<>();
 		// look for cards that match
 		for (Card card: hand) {
-			if (card.matches(cardToMatch)) {
-				if (card.getRank().equals(Card.Rank.WILD_DRAW_FOUR)) {
-					wd4s.add(card);
-				}
-				else {
-					matches.add(card);
-				}
+			if (card.hasRank(Rank.WILD_DRAW_FOUR)) {
+				wd4s.add(card);
+			}
+			else if (card.matches(cardToMatch)) {
+				matches.add(card);
 			}
 		}
 		// add wild draw fours if they can be played
 		boolean wd4Valid = true;
 		for (Card match: matches) {
-			if (match.getColor().equals(cardToMatch.getColor())) {
+			if (match.matchesColor(cardToMatch)) {
 				wd4Valid = false;
 			}
 		}
