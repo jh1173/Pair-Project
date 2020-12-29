@@ -25,9 +25,10 @@ public class Game {
 	private boolean hasDrawnCard;
 	/** whether the game is over */
 	private boolean gameOver = false;
+	/** whether the human player is in the process of taking a turn */
+	private boolean takingTurn = false;
 	// GUI elements
-	// TODO add GUI elements, player interface (will likely require wait-notify)
-	// TODO get rid of print statements
+	// TODO add GUI elements, player interface
 
 	/**
 	 * Create a game with the specified number of players
@@ -40,8 +41,7 @@ public class Game {
 		deck.addWildDraw4s();
 		// set up players
 		players = new Player[numPlayers];
-		//players[0] = new Player(deck, pile);
-		players[0] = new ComputerPlayer(deck, pile);
+		players[0] = new Player(deck, pile);
 		for (int i = 1; i < numPlayers; i++) {
 			players[i] = new ComputerPlayer(deck, pile);
 		}
@@ -82,52 +82,59 @@ public class Game {
 	public boolean currentPlayerIsHuman() {
 		return !(currentPlayer() instanceof ComputerPlayer);
 	}
-
-	/**
-	 * Start the current player's turn by determining the action the player should take
-	 */
-	public void startTurn() {
+	
+	public void startHumanTurn() {
 		Card topCard = pile.topCard();
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(Color.NONE)) {
-			chooseColor();
+			// set up listener to execute chooseColor(color);
 		}
 		// action card
 		if (topCard.isActive()) {
-			if (currentPlayerIsHuman()) {
-				// prompt to takeAction()
-			}
-			else {
-				try {Thread.sleep(1000);}
-				catch (InterruptedException ex) {}
-				takeAction();
-			}
-
+			// set up listener to execute takeAction();
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				if (currentPlayerIsHuman()) {
-					// prompt to drawCard()
-				}
-				else {
-					try {Thread.sleep(1000);}
-					catch (InterruptedException ex) {}
-					draw();
-				}
+				// set up listener to execute draw();
 			}
 			// play card
 			else {
-				if (currentPlayerIsHuman()) {
-					// prompt to playCard()
-				}
-				else {
-					try {Thread.sleep(1000);}
-					catch (InterruptedException ex) {}
-					Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
-					play(cardToPlay);
-				}
+				// set up listener to execute play(cardToPlay);
+			}
+		}
+	}
+
+	/**
+	 * Start the current player's turn by determining the action the player should take
+	 */
+	public synchronized void startComputerTurn() {
+		Card topCard = pile.topCard();
+		// if the top card is wild and not assigned a color (unlikely)
+		if (topCard.hasColor(Color.NONE)) {
+			chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
+		}
+		// action card
+		if (topCard.isActive()) {
+			try {Thread.sleep(1000);}
+			catch (InterruptedException ex) {}
+			takeAction();
+		}
+		else {
+			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
+			// draw card
+			if (matches.size() == 0) {
+				try {Thread.sleep(1000);}
+				catch (InterruptedException ex) {}
+				draw();
+			}
+			// play card
+			else {
+				try {Thread.sleep(1000);}
+				catch (InterruptedException ex) {}
+				Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
+				play(cardToPlay);
 			}
 		}
 	}
@@ -141,39 +148,37 @@ public class Game {
 		Rank topRank = topCard.getRank();
 		// draw two cards
 		if (topRank.equals(Rank.DRAW_TWO)) {
-			System.out.println("draw two");
 			currentPlayer().drawCards(deck, pile, 2);
 		}
 		// draw four cards
 		else if (topRank.equals(Rank.WILD_DRAW_FOUR)) {
-			System.out.println("draw four");
 			currentPlayer().drawCards(deck, pile, 4);
 		}
 		// skip turn
 		else {
-			System.out.println("skip");
 			// handle these (reverse acts like skip in 2 player game)
 		}
 		topCard.setActive(false);
+		nextPlayer();
 	}
 
 	/**
 	 * The current player draws a card from the deck
 	 */
 	public void draw() {
-		System.out.println("draw");
 		Card cardDrawn = currentPlayer().drawCard(deck, pile);
 		hasDrawnCard = true;
 		// ask player whether to play card if playable
 		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
 		if (matches.contains(cardDrawn)) {
 			if (currentPlayerIsHuman()) {
-				// prompt to play card
+				// prompt to play(cardToPlay)
 			}
 			else {
 				play(cardDrawn);
 			}
 		}
+		nextPlayer();
 	}
 
 	/**
@@ -181,29 +186,30 @@ public class Game {
 	 * @param card the card to be played
 	 */
 	public void play(Card card) {
-		System.out.println("play");
+		
 		currentPlayer().playCard(card, pile);
 		// say uno
 		if (currentPlayer().oneCardLeft()) {
-			System.out.println("Uno");
+			
 		}
 		// prompt wild card color selection if applicable
 		if (card.isWildCard()) {
-			chooseColor();
+			if (currentPlayerIsHuman()) {
+				// prompt to chooseColor(color)
+			}
+			else {
+				chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
+			}
 		}
+		nextPlayer();
 	}
 	
 	/**
 	 * The current player sets the color of a wild card that has not yet been assigned a color
 	 */
-	public void chooseColor() {
-		if (currentPlayerIsHuman()) {
-
-		}
-		else {
-			pile.topCard().setColor(((ComputerPlayer)currentPlayer()).chooseColor());
-			System.out.println("set color");
-		}
+	public void chooseColor(Color color) {
+		pile.topCard().setColor(color);
+		
 	}
 
 	/**
@@ -223,15 +229,20 @@ public class Game {
 		else {
 			// reverse card
 			if (topCard.hasRank(Rank.REVERSE) && topCard.isActive() && players.length != 2) {
-				System.out.println("reverse");
+				
 				playOrder *= -1;
 				topCard.setActive(false);
 			}
 			// switch to next player
 			currentPlayerIndex = Math.floorMod(currentPlayerIndex + playOrder, players.length);
 			hasDrawnCard = false;
-			System.out.println(currentPlayerIndex);
-			startTurn();
+			
+			if (currentPlayerIsHuman()) {
+				startHumanTurn();
+			}
+			else {
+				startComputerTurn();
+			}
 		}
 	}
 
@@ -239,7 +250,7 @@ public class Game {
 	 * Start a new round after a player wins, or end the game if a player has 500 points
 	 */
 	public void nextRound() {
-		System.out.println(Arrays.toString(points));
+		
 		// check if someone won the game
 		for (int i = 0; i < players.length; i++) {
 			if (points[i] >= 500) {
@@ -263,9 +274,7 @@ public class Game {
 		reset();
 		setRandomPlayer();
 		// take turns until the game is over
-		while (!gameOver) {
-			nextPlayer();
-		}
+		nextPlayer();
 	}
 
 	/**
