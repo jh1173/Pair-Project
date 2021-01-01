@@ -35,6 +35,47 @@ public class Game {
 	 * @param numPlayers
 	 */
 	public Game(int numPlayers) {
+		JFrame frame = new JFrame("Welcome"); 
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		JPanel contentPane = new JPanel(); 
+		contentPane.setLayout(new GridBagLayout());
+		contentPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JLabel welcome = new JLabel("Welcome");
+		welcome.setHorizontalAlignment((int) JLabel.CENTER_ALIGNMENT);
+		welcome.setVerticalAlignment((int) JLabel.CENTER_ALIGNMENT);
+		JButton howToPlayUno = new JButton("How to Play Uno");
+		howToPlayUno.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
+		howToPlayUno.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
+		JButton gameRules = new JButton(" Game Rules");
+		gameRules.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
+		gameRules.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
+		JButton play = new JButton("Play");
+		play.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
+		play.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
+		GridBagConstraints welcome1 = new GridBagConstraints();
+		welcome1.fill = GridBagConstraints.HORIZONTAL;
+		welcome1.gridwidth = 3;
+		welcome1.gridx = 0;
+		welcome1.gridy = 0;
+		GridBagConstraints howToPlayUno1 = new GridBagConstraints();
+		howToPlayUno1.fill = GridBagConstraints.HORIZONTAL;
+		howToPlayUno1.gridx = 0;
+		howToPlayUno1.gridy = 1;
+		GridBagConstraints gameRules1 = new GridBagConstraints();
+		gameRules1.fill = GridBagConstraints.HORIZONTAL;
+		gameRules1.gridx = 1;
+		gameRules1.gridy = 1;
+		GridBagConstraints play1 = new GridBagConstraints();
+		play1.fill = GridBagConstraints.HORIZONTAL;
+		play1.gridx = 2;
+		play1.gridy = 1;
+		contentPane.add(welcome, welcome1);
+        	contentPane.add(howToPlayUno, howToPlayUno1);
+        	contentPane.add(gameRules, gameRules1);
+        	contentPane.add(play, play1);
+		frame.setContentPane(contentPane);
+		frame.setSize(700, 700);
+		frame.setVisible(true);
 		// set up deck and pile
 		deck = new Deck();
 		pile = new Pile(deck);
