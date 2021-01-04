@@ -139,21 +139,21 @@ public class Game implements ActionListener{
 		Card topCard = pile.topCard();
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(Color.NONE)) {
-			// set up listener to execute chooseColor(color);
+			// TODO set up listener to execute chooseColor(color);
 		}
 		// action card
 		if (topCard.isActive()) {
-			// set up listener to execute takeAction();
+			// TODO set up listener to execute takeAction();
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				// set up listener to execute draw();
+				// TODO set up listener to execute draw();
 			}
 			// play card
 			else {
-				// set up listener to execute play(cardToPlay);
+				// TODO set up listener to execute play(cardToPlay);
 			}
 		}
 	}
@@ -208,7 +208,7 @@ public class Game implements ActionListener{
 		}
 		// skip turn
 		else {
-			// handle these (reverse acts like skip in 2 player game)
+			// TODO handle skips (reverse acts like skip in 2 player game)
 		}
 		topCard.setActive(false);
 		nextPlayer();
@@ -224,7 +224,7 @@ public class Game implements ActionListener{
 		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
 		if (matches.contains(cardDrawn)) {
 			if (currentPlayerIsHuman()) {
-				// prompt to play(cardToPlay)
+				// TODO prompt to play(cardToPlay)
 			}
 			else {
 				play(cardDrawn);
@@ -242,12 +242,12 @@ public class Game implements ActionListener{
 			currentPlayer().playCard(card, pile);
 			// say uno
 			if (currentPlayer().oneCardLeft()) {
-
+				// TODO say uno
 			}
 			// prompt wild card color selection if applicable
 			if (card.isWildCard()) {
 				if (currentPlayerIsHuman()) {
-					// prompt to chooseColor(color)
+					// TODO prompt to chooseColor(color)
 				}
 				else {
 					chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
@@ -272,6 +272,7 @@ public class Game implements ActionListener{
 		Card topCard = pile.topCard();
 		if (currentPlayer().hasWon()) {
 			// handle win, including next player drawing cards if necessary and switching back to this player
+			// TODO message for winner
 			int thisRoundPoints = 0;
 			for (Player player: players) {
 				thisRoundPoints += player.getHand().handValue();
@@ -308,7 +309,7 @@ public class Game implements ActionListener{
 		for (int i = 0; i < players.length; i++) {
 			if (points[i] >= 500) {
 				gameOver = true;
-				// do something for player that won
+				// TODO do something for player that won
 				return;
 			}
 		}
