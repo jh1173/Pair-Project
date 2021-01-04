@@ -2,11 +2,14 @@ package main;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 /**
  * The Uno game, and the graphical user interface
  */
-public class Game {
+public class Game implements ActionListener{
 
 	// Game elements
 	/** the game's deck */
@@ -28,6 +31,12 @@ public class Game {
 	/** whether the human player is in the process of taking a turn */
 	private boolean takingTurn = false;
 	// GUI elements
+	private JFrame frame;
+	private JPanel contentPane;
+	private JLabel welcome;
+	private JButton howToPlayUno;
+	private JButton gameRules;
+	private JButton play;
 	// TODO add GUI elements, player interface
 
 	/**
@@ -35,21 +44,22 @@ public class Game {
 	 * @param numPlayers
 	 */
 	public Game(int numPlayers) {
-		JFrame frame = new JFrame("Welcome"); 
+		// initialize GUI
+		frame = new JFrame("Welcome"); 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JPanel contentPane = new JPanel(); 
+		contentPane = new JPanel(); 
 		contentPane.setLayout(new GridBagLayout());
 		contentPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		JLabel welcome = new JLabel("Welcome");
+		welcome = new JLabel("Welcome");
 		welcome.setHorizontalAlignment((int) JLabel.CENTER_ALIGNMENT);
 		welcome.setVerticalAlignment((int) JLabel.CENTER_ALIGNMENT);
-		JButton howToPlayUno = new JButton("How to Play Uno");
+		howToPlayUno = new JButton("How to Play Uno");
 		howToPlayUno.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
 		howToPlayUno.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
-		JButton gameRules = new JButton(" Game Rules");
+		gameRules = new JButton(" Game Rules");
 		gameRules.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
 		gameRules.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
-		JButton play = new JButton("Play");
+		play = new JButton("Play");
 		play.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
 		play.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
 		GridBagConstraints welcome1 = new GridBagConstraints();
@@ -70,12 +80,13 @@ public class Game {
 		play1.gridx = 2;
 		play1.gridy = 1;
 		contentPane.add(welcome, welcome1);
-        	contentPane.add(howToPlayUno, howToPlayUno1);
-        	contentPane.add(gameRules, gameRules1);
-        	contentPane.add(play, play1);
+        contentPane.add(howToPlayUno, howToPlayUno1);
+        contentPane.add(gameRules, gameRules1);
+        contentPane.add(play, play1);
 		frame.setContentPane(contentPane);
 		frame.setSize(700, 700);
 		frame.setVisible(true);
+		// initialize game
 		// set up deck and pile
 		deck = new Deck();
 		pile = new Pile(deck);
@@ -121,7 +132,7 @@ public class Game {
 	 * @return whether the current player is a human player
 	 */
 	public boolean currentPlayerIsHuman() {
-		return !(currentPlayer() instanceof ComputerPlayer);
+		return currentPlayerIndex == 0;
 	}
 	
 	public void startHumanTurn() {
@@ -150,7 +161,7 @@ public class Game {
 	/**
 	 * Start the current player's turn by determining the action the player should take
 	 */
-	public synchronized void startComputerTurn() {
+	public void startComputerTurn() {
 		Card topCard = pile.topCard();
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(Color.NONE)) {
@@ -227,19 +238,20 @@ public class Game {
 	 * @param card the card to be played
 	 */
 	public void play(Card card) {
-		
-		currentPlayer().playCard(card, pile);
-		// say uno
-		if (currentPlayer().oneCardLeft()) {
-			
-		}
-		// prompt wild card color selection if applicable
-		if (card.isWildCard()) {
-			if (currentPlayerIsHuman()) {
-				// prompt to chooseColor(color)
+		if (card != null) {
+			currentPlayer().playCard(card, pile);
+			// say uno
+			if (currentPlayer().oneCardLeft()) {
+
 			}
-			else {
-				chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
+			// prompt wild card color selection if applicable
+			if (card.isWildCard()) {
+				if (currentPlayerIsHuman()) {
+					// prompt to chooseColor(color)
+				}
+				else {
+					chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
+				}
 			}
 		}
 		nextPlayer();
@@ -323,6 +335,14 @@ public class Game {
 	 */
 	public void setRandomPlayer() {
 		currentPlayerIndex = (int)(Math.random() * players.length);
+	}
+	
+	/**
+	 * Perform actions
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
 	}
 
 	/**
