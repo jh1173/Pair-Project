@@ -147,5 +147,10 @@ public class Card {
 	public static boolean isWildRank(Rank rank) {
 		return rank.equals(Rank.WILD) || rank.equals(Rank.WILD_DRAW_FOUR);
 	}
+	
+	@Override
+	public String toString() {
+		return (color.toString() + "_" + rank.toString());
+	}
 
 }

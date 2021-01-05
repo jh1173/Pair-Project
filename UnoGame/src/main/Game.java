@@ -28,8 +28,6 @@ public class Game implements ActionListener{
 	private boolean hasDrawnCard;
 	/** whether the game is over */
 	private boolean gameOver = false;
-	/** whether the human player is in the process of taking a turn */
-	private boolean takingTurn = false;
 	// GUI elements
 	private JFrame frame;
 	private JPanel contentPane;
@@ -37,13 +35,14 @@ public class Game implements ActionListener{
 	private JButton howToPlayUno;
 	private JButton gameRules;
 	private JButton play;
+	private JSpinner selectPlayers;
 	// TODO add GUI elements, player interface
 
 	/**
 	 * Create a game with the specified number of players
 	 * @param numPlayers
 	 */
-	public Game(int numPlayers) {
+	public Game() {
 		// initialize GUI
 		frame = new JFrame("Welcome"); 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -56,48 +55,37 @@ public class Game implements ActionListener{
 		howToPlayUno = new JButton("How to Play Uno");
 		howToPlayUno.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
 		howToPlayUno.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
-		gameRules = new JButton(" Game Rules");
+		gameRules = new JButton("Game Rules");
 		gameRules.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
 		gameRules.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
+		gameRules.addActionListener(this);
+		gameRules.setActionCommand("Game Rules");
 		play = new JButton("Play");
 		play.setHorizontalAlignment((int) JButton.CENTER_ALIGNMENT);
 		play.setVerticalAlignment((int) JButton.CENTER_ALIGNMENT);
-		GridBagConstraints welcome1 = new GridBagConstraints();
-		welcome1.fill = GridBagConstraints.HORIZONTAL;
-		welcome1.gridwidth = 3;
-		welcome1.gridx = 0;
-		welcome1.gridy = 0;
-		GridBagConstraints howToPlayUno1 = new GridBagConstraints();
-		howToPlayUno1.fill = GridBagConstraints.HORIZONTAL;
-		howToPlayUno1.gridx = 0;
-		howToPlayUno1.gridy = 1;
-		GridBagConstraints gameRules1 = new GridBagConstraints();
-		gameRules1.fill = GridBagConstraints.HORIZONTAL;
-		gameRules1.gridx = 1;
-		gameRules1.gridy = 1;
-		GridBagConstraints play1 = new GridBagConstraints();
-		play1.fill = GridBagConstraints.HORIZONTAL;
-		play1.gridx = 2;
-		play1.gridy = 1;
-		contentPane.add(welcome, welcome1);
-        contentPane.add(howToPlayUno, howToPlayUno1);
-        contentPane.add(gameRules, gameRules1);
-        contentPane.add(play, play1);
+		play.addActionListener(this);
+		play.setActionCommand("Play");
+		SpinnerModel spinnerModel = new SpinnerNumberModel(2, 2, 10, 1);
+		selectPlayers = new JSpinner(spinnerModel);
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridwidth = 3; c.gridx = 0; c.gridy = 0;
+		contentPane.add(welcome, c);
+		c.gridwidth = 1; c.gridy = 1;
+		contentPane.add(howToPlayUno, c);
+		c.gridx = 1;
+		contentPane.add(gameRules, c);
+		c.gridx = 2;
+        contentPane.add(play, c);
+        c.gridy = 2;
+        contentPane.add(selectPlayers, c);
 		frame.setContentPane(contentPane);
 		frame.setSize(700, 700);
 		frame.setVisible(true);
-		// initialize game
-		// set up deck and pile
+		// set up deck and pile for games
 		deck = new Deck();
 		pile = new Pile(deck);
 		deck.addWildDraw4s();
-		// set up players
-		players = new Player[numPlayers];
-		players[0] = new Player(deck, pile);
-		for (int i = 1; i < numPlayers; i++) {
-			players[i] = new ComputerPlayer(deck, pile);
-		}
-		points = new int[numPlayers];
 	}
 
 	/**
@@ -133,6 +121,10 @@ public class Game implements ActionListener{
 	 */
 	public boolean currentPlayerIsHuman() {
 		return currentPlayerIndex == 0;
+	}
+	
+	public int numPlayers() {
+		return players.length;
 	}
 	
 	public void startHumanTurn() {
@@ -262,7 +254,6 @@ public class Game implements ActionListener{
 	 */
 	public void chooseColor(Color color) {
 		pile.topCard().setColor(color);
-		
 	}
 
 	/**
@@ -282,15 +273,13 @@ public class Game implements ActionListener{
 		}
 		else {
 			// reverse card
-			if (topCard.hasRank(Rank.REVERSE) && topCard.isActive() && players.length != 2) {
-				
+			if (topCard.hasRank(Rank.REVERSE) && topCard.isActive() && numPlayers() != 2) {
 				playOrder *= -1;
 				topCard.setActive(false);
 			}
 			// switch to next player
-			currentPlayerIndex = Math.floorMod(currentPlayerIndex + playOrder, players.length);
+			currentPlayerIndex = Math.floorMod(currentPlayerIndex + playOrder, numPlayers());
 			hasDrawnCard = false;
-			
 			if (currentPlayerIsHuman()) {
 				startHumanTurn();
 			}
@@ -304,9 +293,8 @@ public class Game implements ActionListener{
 	 * Start a new round after a player wins, or end the game if a player has 500 points
 	 */
 	public void nextRound() {
-		
 		// check if someone won the game
-		for (int i = 0; i < players.length; i++) {
+		for (int i = 0; i < numPlayers(); i++) {
 			if (points[i] >= 500) {
 				gameOver = true;
 				// TODO do something for player that won
@@ -321,7 +309,14 @@ public class Game implements ActionListener{
 	/**
 	 * Start the game with all players at 0 points
 	 */
-	public void startGame() {
+	public void startGame(int numPlayers) {
+		// set up players
+		players = new Player[numPlayers];
+		players[0] = new Player(deck, pile);
+		for (int i = 1; i < numPlayers; i++) {
+			players[i] = new ComputerPlayer(deck, pile);
+		}
+		points = new int[numPlayers];
 		// initialize game data
 		gameOver = false;
 		Arrays.fill(points, 0);
@@ -335,7 +330,7 @@ public class Game implements ActionListener{
 	 * Set a random player to be the current player
 	 */
 	public void setRandomPlayer() {
-		currentPlayerIndex = (int)(Math.random() * players.length);
+		currentPlayerIndex = (int)(Math.random() * numPlayers());
 	}
 	
 	/**
@@ -343,7 +338,13 @@ public class Game implements ActionListener{
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
+		String ac = e.getActionCommand();
+		if (ac.equals("Game Rules")) {
+			
+		}
+		else if (ac.equals("Play")) {
+			startGame((Integer)selectPlayers.getValue());
+		}
 	}
 
 	/**
@@ -351,8 +352,7 @@ public class Game implements ActionListener{
 	 * @param args not used
 	 */
 	public static void main(String[] args) {
-		Game game = new Game(3);
-		game.startGame();
+		Game game = new Game();
 	}
 
 }
