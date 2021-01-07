@@ -36,6 +36,15 @@ public class Game implements ActionListener{
 	private JButton gameRules;
 	private JButton play;
 	private JSpinner selectPlayers;
+	// TODO game window: text-only prototype
+	private JPanel gameWindow = new JPanel();
+	private JLabel deckLabel = new JLabel();
+	private JLabel pileLabel = new JLabel();
+	private JTextArea playerText = new JTextArea();
+	private JTextArea humanPlayerCards = new JTextArea();
+	private JButton continueButton = new JButton("Continue");
+	private JTextField inputField = new JTextField(8);
+	private JButton quitButton = new JButton("Quit");
 	// TODO add GUI elements, player interface
 
 	/**
@@ -82,6 +91,19 @@ public class Game implements ActionListener{
 		frame.setContentPane(contentPane);
 		frame.setSize(700, 700);
 		frame.setVisible(true);
+		continueButton.addActionListener(this);
+		c.fill = GridBagConstraints.VERTICAL; c.gridx = 0; c.gridy = 0;
+		gameWindow.add(deckLabel, c);
+		c.gridy = 1;
+		gameWindow.add(pileLabel, c);
+		c.gridy = 2;
+		gameWindow.add(playerText, c);
+		c.gridy = 3;
+		gameWindow.add(humanPlayerCards, c);
+		c.gridy = 4;
+		gameWindow.add(inputField);
+		c.gridx = 1;
+		gameWindow.add(continueButton);
 		// set up deck and pile for games
 		deck = new Deck();
 		pile = new Pile(deck);
@@ -132,20 +154,24 @@ public class Game implements ActionListener{
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(Color.NONE)) {
 			// TODO set up listener to execute chooseColor(color);
+			continueButton.setActionCommand("color");
 		}
 		// action card
 		if (topCard.isActive()) {
 			// TODO set up listener to execute takeAction();
+			continueButton.setActionCommand("action");
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
 				// TODO set up listener to execute draw();
+				continueButton.setActionCommand("play/draw");
 			}
 			// play card
 			else {
 				// TODO set up listener to execute play(cardToPlay);
+				continueButton.setActionCommand("play/draw");
 			}
 		}
 	}
@@ -211,12 +237,14 @@ public class Game implements ActionListener{
 	 */
 	public void draw() {
 		Card cardDrawn = currentPlayer().drawCard(deck, pile);
+		updateDisplay();
 		hasDrawnCard = true;
 		// ask player whether to play card if playable
 		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
 		if (matches.contains(cardDrawn)) {
 			if (currentPlayerIsHuman()) {
-				// TODO prompt to play(cardToPlay)
+				// TODO prompt to play(cardToPlay) for the card drawn
+				continueButton.setActionCommand("play/draw");
 			}
 			else {
 				play(cardDrawn);
@@ -233,6 +261,7 @@ public class Game implements ActionListener{
 		if (card != null) {
 			currentPlayer().playCard(card, pile);
 			// say uno
+			updateDisplay();
 			if (currentPlayer().oneCardLeft()) {
 				// TODO say uno
 			}
@@ -240,6 +269,7 @@ public class Game implements ActionListener{
 			if (card.isWildCard()) {
 				if (currentPlayerIsHuman()) {
 					// TODO prompt to chooseColor(color)
+					continueButton.setActionCommand("color");
 				}
 				else {
 					chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
@@ -260,6 +290,7 @@ public class Game implements ActionListener{
 	 * Transfer play to the next player
 	 */
 	public void nextPlayer() {
+		updateDisplay();
 		Card topCard = pile.topCard();
 		if (currentPlayer().hasWon()) {
 			// handle win, including next player drawing cards if necessary and switching back to this player
@@ -280,6 +311,7 @@ public class Game implements ActionListener{
 			// switch to next player
 			currentPlayerIndex = Math.floorMod(currentPlayerIndex + playOrder, numPlayers());
 			hasDrawnCard = false;
+			updateDisplay();
 			if (currentPlayerIsHuman()) {
 				startHumanTurn();
 			}
@@ -334,6 +366,33 @@ public class Game implements ActionListener{
 	}
 	
 	/**
+	 * Update the display to reflect the current state of the game
+	 */
+	public void updateDisplay() {
+		deckLabel.setText("Deck: " + Integer.toString(deck.numCards()));
+		pileLabel.setText("Pile: " + pile.topCard().toString());
+		String playerInfo = "";
+		for (int i = 0; i < players.length; i++) {
+			if (i == currentPlayerIndex) {
+				playerInfo += "*";
+			}
+			playerInfo += Integer.toString(i) + ": ";
+			playerInfo += players[i].handSize();
+			playerInfo += " cards left\n";
+		}
+		playerText.setText(playerInfo);
+		String humanCards = "";
+		int cardNum = 1;
+		for (Card card: players[0].getHand().getCards()) {
+			humanCards += Integer.toString(cardNum) + ": ";
+			humanCards += card.toString();
+			humanCards += "\n";
+			cardNum++;
+		}
+		humanPlayerCards.setText(humanCards);
+	}
+	
+	/**
 	 * Perform actions
 	 */
 	@Override
@@ -343,7 +402,51 @@ public class Game implements ActionListener{
 			
 		}
 		else if (ac.equals("Play")) {
+			frame.setContentPane(gameWindow);
 			startGame((Integer)selectPlayers.getValue());
+		}
+		else if (ac.equals("action")) {
+			takeAction();
+		}
+		else if (ac.equals("color")) {
+			String inputText = inputField.getText();
+			if (inputText.toLowerCase().equals("red")) {
+				chooseColor(Color.RED);
+			}
+			else if (inputText.toLowerCase().equals("green")) {
+				chooseColor(Color.GREEN);
+			}
+			else if (inputText.toLowerCase().equals("blue")) {
+				chooseColor(Color.BLUE);
+			}
+			else if (inputText.toLowerCase().equals("yellow")) {
+				chooseColor(Color.YELLOW);
+			}
+			inputField.setText("");
+		}
+		else if (ac.equals("play/draw")) {
+			String inputText = inputField.getText();
+			if (inputText.equals("")) {
+				nextPlayer();
+			}
+			else if (!hasDrawnCard && inputField.getText().toLowerCase().equals("draw")) {
+				draw();
+				hasDrawnCard = true;
+			}
+			else {
+				int cardIndex = -1;
+				try {
+					cardIndex = Integer.parseInt(inputText) - 1;
+				} catch (NumberFormatException ex) {return;}
+				Card selectedCard = currentPlayerHand().getCards().get(cardIndex);
+				if (hasDrawnCard && cardIndex == currentPlayer().handSize() - 1) {
+					play(selectedCard);
+				}
+				else if (currentPlayerHand().getMatches(pile.topCard()).contains(selectedCard)) {
+					play(selectedCard);
+				}
+			}
+			inputField.setText("");
 		}
 	}
 

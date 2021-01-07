@@ -17,7 +17,7 @@ public class Player {
 	 */
 	public Player(Deck deck, Pile pile) {
 		hand = new Hand();
-		fillHand(deck, pile);
+		//fillHand(deck, pile);
 	}
 	
 	/**
@@ -35,7 +35,7 @@ public class Player {
 	public void fillHand(Deck deck, Pile pile) {
 		hand.getCards().clear();
 		for (int i = 0; i < 7; i++) {
-			hand.addCard(drawCard(deck, pile));
+			drawCard(deck, pile);
 		}
 	}
 	
@@ -102,6 +102,10 @@ public class Player {
 	 */
 	public void setColor(Pile pile, Color color) {
 		pile.topCard().setColor(color);
+	}
+	
+	public int handSize() {
+		return getHand().getCards().size();
 	}
 
 }

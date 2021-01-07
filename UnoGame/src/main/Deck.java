@@ -42,6 +42,7 @@ public class Deck {
 				for (Rank rank: Rank.values()) {
 					if (!rank.equals(Rank.NUM0) && !Card.isWildRank(rank)) {
 						deck.add(new Card(rank, color));
+						deck.add(new Card(rank, color));
 					}
 				}
 			}
@@ -103,6 +104,13 @@ public class Deck {
 	public void hardReset() {
 		deck.clear();
 		addNonWildDraw4s();
+	}
+	
+	/**
+	 * @return the number of cards in the deck
+	 */
+	public int numCards() {
+		return deck.size();
 	}
 
 }
