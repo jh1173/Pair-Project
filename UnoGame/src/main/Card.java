@@ -148,6 +148,9 @@ public class Card {
 		return rank.equals(Rank.WILD) || rank.equals(Rank.WILD_DRAW_FOUR);
 	}
 	
+	/**
+	 * string representation of the card
+	 */
 	@Override
 	public String toString() {
 		return (color.toString() + "_" + rank.toString());

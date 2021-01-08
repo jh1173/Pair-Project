@@ -44,6 +44,7 @@ public class Game implements ActionListener{
 	private JTextArea humanPlayerCards = new JTextArea();
 	private JButton continueButton = new JButton("Continue");
 	private JTextField inputField = new JTextField(8);
+	private JLabel status = new JLabel();
 	private JButton quitButton = new JButton("Quit");
 	// TODO add GUI elements, player interface
 
@@ -104,6 +105,8 @@ public class Game implements ActionListener{
 		gameWindow.add(inputField);
 		c.gridx = 1;
 		gameWindow.add(continueButton);
+		c.gridx = 0; c.gridy = 5;
+		gameWindow.add(status);
 		// set up deck and pile for games
 		deck = new Deck();
 		pile = new Pile(deck);
@@ -154,11 +157,13 @@ public class Game implements ActionListener{
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(Color.NONE)) {
 			// TODO set up listener to execute chooseColor(color);
+			status.setText("pick color");
 			continueButton.setActionCommand("color");
 		}
 		// action card
 		if (topCard.isActive()) {
 			// TODO set up listener to execute takeAction();
+			status.setText("take action");
 			continueButton.setActionCommand("action");
 		}
 		else {
@@ -166,11 +171,13 @@ public class Game implements ActionListener{
 			// draw card
 			if (matches.size() == 0) {
 				// TODO set up listener to execute draw();
+				status.setText("draw card");
 				continueButton.setActionCommand("play/draw");
 			}
 			// play card
 			else {
 				// TODO set up listener to execute play(cardToPlay);
+				status.setText("play card");
 				continueButton.setActionCommand("play/draw");
 			}
 		}
@@ -187,22 +194,22 @@ public class Game implements ActionListener{
 		}
 		// action card
 		if (topCard.isActive()) {
-			try {Thread.sleep(1000);}
-			catch (InterruptedException ex) {}
+			//try {Thread.sleep(1000);}
+			//catch (InterruptedException ex) {}
 			takeAction();
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				try {Thread.sleep(1000);}
-				catch (InterruptedException ex) {}
+				//try {Thread.sleep(1000);}
+				//catch (InterruptedException ex) {}
 				draw();
 			}
 			// play card
 			else {
-				try {Thread.sleep(1000);}
-				catch (InterruptedException ex) {}
+				//try {Thread.sleep(1000);}
+				//catch (InterruptedException ex) {}
 				Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
 				play(cardToPlay);
 			}
@@ -236,15 +243,19 @@ public class Game implements ActionListener{
 	 * The current player draws a card from the deck
 	 */
 	public void draw() {
-		Card cardDrawn = currentPlayer().drawCard(deck, pile);
-		updateDisplay();
+		currentPlayer().drawCard(deck, pile);
+		ArrayList<Card> playerCards = currentPlayer().getHand().getCards();
+		Card cardDrawn = playerCards.get(playerCards.size() - 1);
 		hasDrawnCard = true;
+		updateDisplay();
 		// ask player whether to play card if playable
 		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
 		if (matches.contains(cardDrawn)) {
 			if (currentPlayerIsHuman()) {
 				// TODO prompt to play(cardToPlay) for the card drawn
+				status.setText("play card or continue");
 				continueButton.setActionCommand("play/draw");
+				return;
 			}
 			else {
 				play(cardDrawn);
@@ -269,7 +280,9 @@ public class Game implements ActionListener{
 			if (card.isWildCard()) {
 				if (currentPlayerIsHuman()) {
 					// TODO prompt to chooseColor(color)
-					continueButton.setActionCommand("color");
+					status.setText("pick color");
+					continueButton.setActionCommand("color next");
+					return;
 				}
 				else {
 					chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
@@ -336,6 +349,8 @@ public class Game implements ActionListener{
 		// set up next round
 		reset();
 		setRandomPlayer();
+		// FIXME replace with setup to event listener (avoid stack overflow)
+		nextPlayer();
 	}
 
 	/**
@@ -383,7 +398,14 @@ public class Game implements ActionListener{
 		playerText.setText(playerInfo);
 		String humanCards = "";
 		int cardNum = 1;
-		for (Card card: players[0].getHand().getCards()) {
+		Hand playerHand = players[0].getHand();
+		for (int i = 0; i < playerHand.getCards().size(); i++) {
+			Card card = playerHand.getCards().get(i);
+			if (playerHand.getMatches(pile.topCard()).contains(card)) {
+				if (!hasDrawnCard || i == playerHand.getCards().size() - 1) {
+					humanCards += "->";
+				}
+			}
 			humanCards += Integer.toString(cardNum) + ": ";
 			humanCards += card.toString();
 			humanCards += "\n";
@@ -410,6 +432,7 @@ public class Game implements ActionListener{
 		}
 		else if (ac.equals("color")) {
 			String inputText = inputField.getText();
+			inputField.setText("");
 			if (inputText.toLowerCase().equals("red")) {
 				chooseColor(Color.RED);
 			}
@@ -422,16 +445,35 @@ public class Game implements ActionListener{
 			else if (inputText.toLowerCase().equals("yellow")) {
 				chooseColor(Color.YELLOW);
 			}
+		}
+		else if (ac.equals("color next")) {
+			String inputText = inputField.getText();
 			inputField.setText("");
+			if (inputText.toLowerCase().equals("red")) {
+				chooseColor(Color.RED);
+			}
+			else if (inputText.toLowerCase().equals("green")) {
+				chooseColor(Color.GREEN);
+			}
+			else if (inputText.toLowerCase().equals("blue")) {
+				chooseColor(Color.BLUE);
+			}
+			else if (inputText.toLowerCase().equals("yellow")) {
+				chooseColor(Color.YELLOW);
+			}
+			else {
+				return;
+			}
+			nextPlayer();
 		}
 		else if (ac.equals("play/draw")) {
 			String inputText = inputField.getText();
-			if (inputText.equals("")) {
+			inputField.setText("");
+			if (hasDrawnCard && inputText.equals("")) {
 				nextPlayer();
 			}
-			else if (!hasDrawnCard && inputField.getText().toLowerCase().equals("draw")) {
+			else if (!hasDrawnCard && inputText.equals("")) {
 				draw();
-				hasDrawnCard = true;
 			}
 			else {
 				int cardIndex = -1;
@@ -446,7 +488,6 @@ public class Game implements ActionListener{
 					play(selectedCard);
 				}
 			}
-			inputField.setText("");
 		}
 	}
 
@@ -459,3 +500,5 @@ public class Game implements ActionListener{
 	}
 
 }
+// FIXME better graphics
+// FIXME see what computer players are doing
