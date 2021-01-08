@@ -153,20 +153,27 @@ public class Game implements ActionListener{
 	}
 	
 	public void startHumanTurn() {
+		inputField.setText("");
 		Card topCard = pile.topCard();
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(Color.NONE)) {
+			inputField.setEnabled(true);
+			updateDisplay();
 			// TODO set up listener to execute chooseColor(color);
 			status.setText("pick color");
-			continueButton.setActionCommand("color");
+			continueButton.setActionCommand("color continue");
 		}
 		// action card
-		if (topCard.isActive()) {
+		else if (topCard.isActive()) {
+			inputField.setEnabled(false);
+			updateDisplay();
 			// TODO set up listener to execute takeAction();
 			status.setText("take action");
 			continueButton.setActionCommand("action");
 		}
 		else {
+			inputField.setEnabled(true);
+			updateDisplay();
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
@@ -194,22 +201,22 @@ public class Game implements ActionListener{
 		}
 		// action card
 		if (topCard.isActive()) {
-			//try {Thread.sleep(1000);}
-			//catch (InterruptedException ex) {}
+			try {Thread.sleep(100);}
+			catch (InterruptedException ex) {}
 			takeAction();
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				//try {Thread.sleep(1000);}
-				//catch (InterruptedException ex) {}
+				try {Thread.sleep(100);}
+				catch (InterruptedException ex) {}
 				draw();
 			}
 			// play card
 			else {
-				//try {Thread.sleep(1000);}
-				//catch (InterruptedException ex) {}
+				try {Thread.sleep(100);}
+				catch (InterruptedException ex) {}
 				Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
 				play(cardToPlay);
 			}
@@ -223,6 +230,7 @@ public class Game implements ActionListener{
 		// get rank of card
 		Card topCard = pile.topCard();
 		Rank topRank = topCard.getRank();
+		topCard.setActive(false);
 		// draw two cards
 		if (topRank.equals(Rank.DRAW_TWO)) {
 			currentPlayer().drawCards(deck, pile, 2);
@@ -235,7 +243,6 @@ public class Game implements ActionListener{
 		else {
 			// TODO handle skips (reverse acts like skip in 2 player game)
 		}
-		topCard.setActive(false);
 		nextPlayer();
 	}
 
@@ -306,8 +313,8 @@ public class Game implements ActionListener{
 		updateDisplay();
 		Card topCard = pile.topCard();
 		if (currentPlayer().hasWon()) {
-			// handle win, including next player drawing cards if necessary and switching back to this player
-			// TODO message for winner
+			// TODO handle win, including next player drawing cards if necessary and switching back to this player
+			inputField.setEnabled(false);
 			int thisRoundPoints = 0;
 			for (Player player: players) {
 				thisRoundPoints += player.getHand().handValue();
@@ -340,17 +347,20 @@ public class Game implements ActionListener{
 	public void nextRound() {
 		// check if someone won the game
 		for (int i = 0; i < numPlayers(); i++) {
-			if (points[i] >= 500) {
+			if (points[i] >= 500 && !gameOver) {
 				gameOver = true;
 				// TODO do something for player that won
+				status.setText(String.format("Player %d wins the game", i));
+				continueButton.setEnabled(false);
 				return;
 			}
 		}
+		// TODO message for winner
+		status.setText(String.format("Player %d wins the round", currentPlayerIndex));
+		continueButton.setActionCommand("next round");
 		// set up next round
 		reset();
 		setRandomPlayer();
-		// FIXME replace with setup to event listener (avoid stack overflow)
-		nextPlayer();
 	}
 
 	/**
@@ -401,7 +411,7 @@ public class Game implements ActionListener{
 		Hand playerHand = players[0].getHand();
 		for (int i = 0; i < playerHand.getCards().size(); i++) {
 			Card card = playerHand.getCards().get(i);
-			if (playerHand.getMatches(pile.topCard()).contains(card)) {
+			if (inputField.isEnabled() && playerHand.getMatches(pile.topCard()).contains(card)) {
 				if (!hasDrawnCard || i == playerHand.getCards().size() - 1) {
 					humanCards += "->";
 				}
@@ -425,9 +435,11 @@ public class Game implements ActionListener{
 		}
 		else if (ac.equals("Play")) {
 			frame.setContentPane(gameWindow);
+			continueButton.setEnabled(true);
 			startGame((Integer)selectPlayers.getValue());
 		}
 		else if (ac.equals("action")) {
+			inputField.setEnabled(true);
 			takeAction();
 		}
 		else if (ac.equals("color")) {
@@ -445,6 +457,23 @@ public class Game implements ActionListener{
 			else if (inputText.toLowerCase().equals("yellow")) {
 				chooseColor(Color.YELLOW);
 			}
+		}
+		else if (ac.equals("color continue")) {
+			String inputText = inputField.getText();
+			inputField.setText("");
+			if (inputText.toLowerCase().equals("red")) {
+				chooseColor(Color.RED);
+			}
+			else if (inputText.toLowerCase().equals("green")) {
+				chooseColor(Color.GREEN);
+			}
+			else if (inputText.toLowerCase().equals("blue")) {
+				chooseColor(Color.BLUE);
+			}
+			else if (inputText.toLowerCase().equals("yellow")) {
+				chooseColor(Color.YELLOW);
+			}
+			startHumanTurn();
 		}
 		else if (ac.equals("color next")) {
 			String inputText = inputField.getText();
@@ -488,6 +517,10 @@ public class Game implements ActionListener{
 					play(selectedCard);
 				}
 			}
+		}
+		else if (ac.equals("next round")) {
+			inputField.setEnabled(true);
+			nextPlayer();
 		}
 	}
 

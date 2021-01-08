@@ -137,7 +137,7 @@ public class Card {
 	 */
 	public static boolean isActionRank(Rank rank) {
 		int rankIndex = rank.ordinal();
-		return rankIndex >= 9 && !rank.equals(Rank.WILD);
+		return rankIndex >= 10 && !rank.equals(Rank.WILD);
 	}
 	
 	/**
