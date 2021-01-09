@@ -45,7 +45,7 @@ public class Game implements ActionListener{
 	private JButton continueButton = new JButton("Continue");
 	private JTextField inputField = new JTextField(8);
 	private JLabel status = new JLabel();
-	private JButton quitButton = new JButton("Quit");
+	//private JButton quitButton = new JButton("Quit");
 	// TODO add GUI elements, player interface
 
 	/**
@@ -201,23 +201,51 @@ public class Game implements ActionListener{
 		}
 		// action card
 		if (topCard.isActive()) {
-			try {Thread.sleep(100);}
-			catch (InterruptedException ex) {}
+			/*ActionListener al = new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					takeAction();
+				}
+			};
+			Timer timer = new Timer(3000, al);
+	        timer.setRepeats(false);
+	        timer.start();*/
+			//try {Thread.sleep(1000);}
+			//catch (InterruptedException ex) {}
 			takeAction();
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				try {Thread.sleep(100);}
-				catch (InterruptedException ex) {}
+				/*ActionListener al = new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						draw();
+					}
+				};
+				Timer timer = new Timer(3000, al);
+		        timer.setRepeats(false);
+		        timer.start();*/
+				//try {Thread.sleep(1000);}
+				//catch (InterruptedException ex) {}
 				draw();
 			}
 			// play card
 			else {
-				try {Thread.sleep(100);}
-				catch (InterruptedException ex) {}
 				Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
+				/*ActionListener al = new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						play(cardToPlay);
+					}
+				};
+				Timer timer = new Timer(3000, al);
+		        timer.setRepeats(false);
+		        timer.start();*/
+				//try {Thread.sleep(1000);}
+				//catch (InterruptedException ex) {}
+				//Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
 				play(cardToPlay);
 			}
 		}
@@ -254,11 +282,11 @@ public class Game implements ActionListener{
 		ArrayList<Card> playerCards = currentPlayer().getHand().getCards();
 		Card cardDrawn = playerCards.get(playerCards.size() - 1);
 		hasDrawnCard = true;
-		updateDisplay();
 		// ask player whether to play card if playable
 		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
 		if (matches.contains(cardDrawn)) {
 			if (currentPlayerIsHuman()) {
+				updateDisplay();
 				// TODO prompt to play(cardToPlay) for the card drawn
 				status.setText("play card or continue");
 				continueButton.setActionCommand("play/draw");
@@ -268,7 +296,9 @@ public class Game implements ActionListener{
 				play(cardDrawn);
 			}
 		}
-		nextPlayer();
+		else {
+			nextPlayer();
+		}
 	}
 
 	/**
@@ -279,24 +309,37 @@ public class Game implements ActionListener{
 		if (card != null) {
 			currentPlayer().playCard(card, pile);
 			// say uno
-			updateDisplay();
 			if (currentPlayer().oneCardLeft()) {
 				// TODO say uno
 			}
 			// prompt wild card color selection if applicable
 			if (card.isWildCard()) {
 				if (currentPlayerIsHuman()) {
+					updateDisplay();
 					// TODO prompt to chooseColor(color)
 					status.setText("pick color");
 					continueButton.setActionCommand("color next");
 					return;
 				}
 				else {
-					chooseColor(((ComputerPlayer)currentPlayer()).chooseColor());
+					Color computerColor = ((ComputerPlayer)currentPlayer()).chooseColor();
+					ActionListener al = new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							chooseColor(computerColor);
+							nextPlayer();
+						}
+					};
+					Timer timer = new Timer(1000, al);
+			        timer.setRepeats(false);
+			        timer.start();
 				}
 			}
+			else {
+				nextPlayer();
+			}
 		}
-		nextPlayer();
+		
 	}
 	
 	/**
@@ -309,10 +352,10 @@ public class Game implements ActionListener{
 	/**
 	 * Transfer play to the next player
 	 */
-	public void nextPlayer() {
-		updateDisplay();
+	public synchronized void nextPlayer() {
 		Card topCard = pile.topCard();
 		if (currentPlayer().hasWon()) {
+			updateDisplay();
 			// TODO handle win, including next player drawing cards if necessary and switching back to this player
 			inputField.setEnabled(false);
 			int thisRoundPoints = 0;
@@ -328,15 +371,26 @@ public class Game implements ActionListener{
 				playOrder *= -1;
 				topCard.setActive(false);
 			}
+			System.out.print(playOrder);
+			System.out.print(" ");
 			// switch to next player
 			currentPlayerIndex = Math.floorMod(currentPlayerIndex + playOrder, numPlayers());
+			System.out.println(currentPlayerIndex);
 			hasDrawnCard = false;
-			updateDisplay();
 			if (currentPlayerIsHuman()) {
 				startHumanTurn();
 			}
 			else {
-				startComputerTurn();
+				updateDisplay();
+				ActionListener al = new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						startComputerTurn();
+					}
+				};
+				Timer timer = new Timer(3000, al);
+		        timer.setRepeats(false);
+		        timer.start();
 			}
 		}
 	}
@@ -393,35 +447,42 @@ public class Game implements ActionListener{
 	/**
 	 * Update the display to reflect the current state of the game
 	 */
-	public void updateDisplay() {
-		deckLabel.setText("Deck: " + Integer.toString(deck.numCards()));
-		pileLabel.setText("Pile: " + pile.topCard().toString());
-		String playerInfo = "";
-		for (int i = 0; i < players.length; i++) {
-			if (i == currentPlayerIndex) {
-				playerInfo += "*";
-			}
-			playerInfo += Integer.toString(i) + ": ";
-			playerInfo += players[i].handSize();
-			playerInfo += " cards left\n";
-		}
-		playerText.setText(playerInfo);
-		String humanCards = "";
-		int cardNum = 1;
-		Hand playerHand = players[0].getHand();
-		for (int i = 0; i < playerHand.getCards().size(); i++) {
-			Card card = playerHand.getCards().get(i);
-			if (inputField.isEnabled() && playerHand.getMatches(pile.topCard()).contains(card)) {
-				if (!hasDrawnCard || i == playerHand.getCards().size() - 1) {
-					humanCards += "->";
+	public synchronized void updateDisplay() {
+		SwingWorker<Void, String> worker = new SwingWorker<Void, String>(){
+			@Override
+			protected Void doInBackground() throws Exception {
+				deckLabel.setText("Deck: " + Integer.toString(deck.numCards()));
+				pileLabel.setText("Pile: " + pile.topCard().toString());
+				String playerInfo = "";
+				for (int i = 0; i < players.length; i++) {
+					if (i == currentPlayerIndex) {
+						playerInfo += "*";
+					}
+					playerInfo += Integer.toString(i) + ": ";
+					playerInfo += players[i].handSize();
+					playerInfo += " cards left\n";
 				}
+				playerText.setText(playerInfo);
+				String humanCards = "";
+				int cardNum = 1;
+				Hand playerHand = players[0].getHand();
+				for (int i = 0; i < playerHand.getCards().size(); i++) {
+					Card card = playerHand.getCards().get(i);
+					if (currentPlayerIsHuman() && inputField.isEnabled() 
+							&& playerHand.getMatches(pile.topCard()).contains(card) 
+							&& (!hasDrawnCard || i == playerHand.getCards().size() - 1)) {
+						humanCards += "->";
+					}
+					humanCards += Integer.toString(cardNum) + ": ";
+					humanCards += card.toString();
+					humanCards += "\n";
+					cardNum++;
+				}
+				humanPlayerCards.setText(humanCards);
+				return null;
 			}
-			humanCards += Integer.toString(cardNum) + ": ";
-			humanCards += card.toString();
-			humanCards += "\n";
-			cardNum++;
-		}
-		humanPlayerCards.setText(humanCards);
+		};
+		worker.execute();		
 	}
 	
 	/**
@@ -529,9 +590,10 @@ public class Game implements ActionListener{
 	 * @param args not used
 	 */
 	public static void main(String[] args) {
+		@SuppressWarnings("unused")
 		Game game = new Game();
 	}
 
 }
 // FIXME better graphics
-// FIXME see what computer players are doing
+// FIXME test to make sure everything works well
