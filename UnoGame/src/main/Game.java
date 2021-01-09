@@ -1,7 +1,6 @@
 package main;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -28,6 +27,8 @@ public class Game implements ActionListener{
 	private boolean hasDrawnCard;
 	/** whether the game is over */
 	private boolean gameOver = false;
+	/** time (in milliseconds) each computer player uses to move */
+	private static final int COMPUTER_MOVE_TIME = 3000;
 	// GUI elements
 	private JFrame frame;
 	private JPanel contentPane;
@@ -45,7 +46,6 @@ public class Game implements ActionListener{
 	private JButton continueButton = new JButton("Continue");
 	private JTextField inputField = new JTextField(8);
 	private JLabel status = new JLabel();
-	//private JButton quitButton = new JButton("Quit");
 	// TODO add GUI elements, player interface
 
 	/**
@@ -86,13 +86,16 @@ public class Game implements ActionListener{
 		c.gridx = 1;
 		contentPane.add(gameRules, c);
 		c.gridx = 2;
-        contentPane.add(play, c);
-        c.gridy = 2;
-        contentPane.add(selectPlayers, c);
+		contentPane.add(play, c);
+		c.gridy = 2;
+		contentPane.add(selectPlayers, c);
 		frame.setContentPane(contentPane);
 		frame.setSize(700, 700);
 		frame.setVisible(true);
+		// game window
 		continueButton.addActionListener(this);
+		playerText.setEditable(false);
+		humanPlayerCards.setEditable(false);
 		c.fill = GridBagConstraints.VERTICAL; c.gridx = 0; c.gridy = 0;
 		gameWindow.add(deckLabel, c);
 		c.gridy = 1;
@@ -111,20 +114,6 @@ public class Game implements ActionListener{
 		deck = new Deck();
 		pile = new Pile(deck);
 		deck.addWildDraw4s();
-	}
-
-	/**
-	 * Reset the deck, pile, and all players' hands for a new round
-	 */
-	public void reset() {
-		deck.hardReset();
-		pile.hardReset(deck);
-		deck.addWildDraw4s();
-		for (Player player: players) {
-			if (player != null) {
-				player.fillHand(deck, pile);
-			}
-		}
 	}
 
 	/**
@@ -147,11 +136,29 @@ public class Game implements ActionListener{
 	public boolean currentPlayerIsHuman() {
 		return currentPlayerIndex == 0;
 	}
-	
+
+	/**
+	 * @return the number of players
+	 */
 	public int numPlayers() {
 		return players.length;
 	}
-	
+
+	/**
+	 * Set a random player to be the current player
+	 */
+	public void setRandomPlayer() {
+		currentPlayerIndex = (int)(Math.random() * numPlayers());
+	}
+
+	/**
+	 * Increment currentPlayerIndex by inc, wrapping around after last player
+	 * @param inc the increment of the player index
+	 */
+	public void incrementPlayerIndex(int inc) {
+		currentPlayerIndex = Math.floorMod(currentPlayerIndex + inc, numPlayers());
+	}
+
 	public void startHumanTurn() {
 		inputField.setText("");
 		Card topCard = pile.topCard();
@@ -201,51 +208,17 @@ public class Game implements ActionListener{
 		}
 		// action card
 		if (topCard.isActive()) {
-			/*ActionListener al = new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					takeAction();
-				}
-			};
-			Timer timer = new Timer(3000, al);
-	        timer.setRepeats(false);
-	        timer.start();*/
-			//try {Thread.sleep(1000);}
-			//catch (InterruptedException ex) {}
 			takeAction();
 		}
 		else {
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				/*ActionListener al = new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						draw();
-					}
-				};
-				Timer timer = new Timer(3000, al);
-		        timer.setRepeats(false);
-		        timer.start();*/
-				//try {Thread.sleep(1000);}
-				//catch (InterruptedException ex) {}
 				draw();
 			}
 			// play card
 			else {
 				Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
-				/*ActionListener al = new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						play(cardToPlay);
-					}
-				};
-				Timer timer = new Timer(3000, al);
-		        timer.setRepeats(false);
-		        timer.start();*/
-				//try {Thread.sleep(1000);}
-				//catch (InterruptedException ex) {}
-				//Card cardToPlay = ((ComputerPlayer)currentPlayer()).chooseCard(topCard);
 				play(cardToPlay);
 			}
 		}
@@ -274,13 +247,28 @@ public class Game implements ActionListener{
 		nextPlayer();
 	}
 
+	public void drawAfterWin() {
+		// get rank of card
+		Card topCard = pile.topCard();
+		Rank topRank = topCard.getRank();
+		topCard.setActive(false);
+		// draw two cards
+		if (topRank.equals(Rank.DRAW_TWO)) {
+			currentPlayer().drawCards(deck, pile, 2);
+		}
+		// draw four cards (wild draw four)
+		else {
+			currentPlayer().drawCards(deck, pile, 4);
+		}
+		// go back 1 player
+		incrementPlayerIndex(-1 * playOrder);
+	}
+
 	/**
 	 * The current player draws a card from the deck
 	 */
 	public void draw() {
-		currentPlayer().drawCard(deck, pile);
-		ArrayList<Card> playerCards = currentPlayer().getHand().getCards();
-		Card cardDrawn = playerCards.get(playerCards.size() - 1);
+		Card cardDrawn = currentPlayer().drawCard(deck, pile);
 		hasDrawnCard = true;
 		// ask player whether to play card if playable
 		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
@@ -290,7 +278,6 @@ public class Game implements ActionListener{
 				// TODO prompt to play(cardToPlay) for the card drawn
 				status.setText("play card or continue");
 				continueButton.setActionCommand("play/draw");
-				return;
 			}
 			else {
 				play(cardDrawn);
@@ -319,29 +306,20 @@ public class Game implements ActionListener{
 					// TODO prompt to chooseColor(color)
 					status.setText("pick color");
 					continueButton.setActionCommand("color next");
-					return;
 				}
 				else {
 					Color computerColor = ((ComputerPlayer)currentPlayer()).chooseColor();
-					ActionListener al = new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							chooseColor(computerColor);
-							nextPlayer();
-						}
-					};
-					Timer timer = new Timer(1000, al);
-			        timer.setRepeats(false);
-			        timer.start();
+					chooseColor(computerColor);
+					nextPlayer();
 				}
 			}
 			else {
 				nextPlayer();
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * The current player sets the color of a wild card that has not yet been assigned a color
 	 */
@@ -352,12 +330,18 @@ public class Game implements ActionListener{
 	/**
 	 * Transfer play to the next player
 	 */
-	public synchronized void nextPlayer() {
+	public void nextPlayer() {
 		Card topCard = pile.topCard();
+		// if there is a winner
 		if (currentPlayer().hasWon()) {
-			updateDisplay();
 			// TODO handle win, including next player drawing cards if necessary and switching back to this player
+			if (topCard.isActive() && (topCard.hasRank(Rank.DRAW_TWO) || topCard.hasRank(Rank.WILD_DRAW_FOUR))) {
+				incrementPlayerIndex(playOrder);
+				drawAfterWin();
+			}
+			updateDisplay();
 			inputField.setEnabled(false);
+			continueButton.setEnabled(true);
 			int thisRoundPoints = 0;
 			for (Player player: players) {
 				thisRoundPoints += player.getHand().handValue();
@@ -371,26 +355,26 @@ public class Game implements ActionListener{
 				playOrder *= -1;
 				topCard.setActive(false);
 			}
-			System.out.print(playOrder);
-			System.out.print(" ");
 			// switch to next player
-			currentPlayerIndex = Math.floorMod(currentPlayerIndex + playOrder, numPlayers());
-			System.out.println(currentPlayerIndex);
+			incrementPlayerIndex(playOrder);
 			hasDrawnCard = false;
 			if (currentPlayerIsHuman()) {
+				continueButton.setEnabled(true);
 				startHumanTurn();
 			}
 			else {
+				continueButton.setEnabled(false);
 				updateDisplay();
+				// make move after timer ends
 				ActionListener al = new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						startComputerTurn();
 					}
 				};
-				Timer timer = new Timer(3000, al);
-		        timer.setRepeats(false);
-		        timer.start();
+				javax.swing.Timer timer = new javax.swing.Timer(COMPUTER_MOVE_TIME, al);
+				timer.setRepeats(false);
+				timer.start();
 			}
 		}
 	}
@@ -406,15 +390,35 @@ public class Game implements ActionListener{
 				// TODO do something for player that won
 				status.setText(String.format("Player %d wins the game", i));
 				continueButton.setEnabled(false);
+				// TODO display points on screen
+				System.out.println(Arrays.toString(points));
 				return;
 			}
 		}
+		// message for winner and set up prompt to next round
 		// TODO message for winner
 		status.setText(String.format("Player %d wins the round", currentPlayerIndex));
 		continueButton.setActionCommand("next round");
-		// set up next round
-		reset();
-		setRandomPlayer();
+		// TODO display points on screen
+		System.out.println(Arrays.toString(points));
+	}
+
+	/**
+	 * Reset the deck, pile, and all players' hands for a new round
+	 */
+	public void reset() {
+		// make deck and pile go back to the way they were before
+		deck.hardReset();
+		pile.hardReset(deck);
+		deck.addWildDraw4s();
+		// and fill player hands
+		for (Player player: players) {
+			if (player != null) {
+				player.fillHand(deck, pile);
+			}
+		}
+		// revert play order
+		playOrder = 1;
 	}
 
 	/**
@@ -438,21 +442,16 @@ public class Game implements ActionListener{
 	}
 
 	/**
-	 * Set a random player to be the current player
-	 */
-	public void setRandomPlayer() {
-		currentPlayerIndex = (int)(Math.random() * numPlayers());
-	}
-	
-	/**
 	 * Update the display to reflect the current state of the game
 	 */
-	public synchronized void updateDisplay() {
-		SwingWorker<Void, String> worker = new SwingWorker<Void, String>(){
-			@Override
-			protected Void doInBackground() throws Exception {
+	public void updateDisplay() {
+		// TODO this is what will change when graphics are updated
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				// deck and pile labels
 				deckLabel.setText("Deck: " + Integer.toString(deck.numCards()));
 				pileLabel.setText("Pile: " + pile.topCard().toString());
+				// list of players
 				String playerInfo = "";
 				for (int i = 0; i < players.length; i++) {
 					if (i == currentPlayerIndex) {
@@ -463,12 +462,14 @@ public class Game implements ActionListener{
 					playerInfo += " cards left\n";
 				}
 				playerText.setText(playerInfo);
+				// list of cards
 				String humanCards = "";
 				int cardNum = 1;
 				Hand playerHand = players[0].getHand();
 				for (int i = 0; i < playerHand.getCards().size(); i++) {
 					Card card = playerHand.getCards().get(i);
 					if (currentPlayerIsHuman() && inputField.isEnabled() 
+							&& !status.getText().contains("color")
 							&& playerHand.getMatches(pile.topCard()).contains(card) 
 							&& (!hasDrawnCard || i == playerHand.getCards().size() - 1)) {
 						humanCards += "->";
@@ -479,12 +480,35 @@ public class Game implements ActionListener{
 					cardNum++;
 				}
 				humanPlayerCards.setText(humanCards);
-				return null;
 			}
-		};
-		worker.execute();		
+		});
 	}
-	
+
+	/**
+	 * choose the color of the top card, based on input text
+	 * @param inputText
+	 * @return whether the color was set successfully
+	 */
+	public boolean chooseColorFromText(String inputText) {
+		inputText = inputText.toLowerCase();
+		if (inputText.equals("red")) {
+			chooseColor(Color.RED);
+		}
+		else if (inputText.equals("green")) {
+			chooseColor(Color.GREEN);
+		}
+		else if (inputText.equals("blue")) {
+			chooseColor(Color.BLUE);
+		}
+		else if (inputText.equals("yellow")) {
+			chooseColor(Color.YELLOW);
+		}
+		else {
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Perform actions
 	 */
@@ -492,94 +516,73 @@ public class Game implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		String ac = e.getActionCommand();
 		if (ac.equals("Game Rules")) {
-			
+
 		}
+		// start playing (from main screen)
 		else if (ac.equals("Play")) {
 			frame.setContentPane(gameWindow);
 			continueButton.setEnabled(true);
 			startGame((Integer)selectPlayers.getValue());
 		}
+		// execute action
 		else if (ac.equals("action")) {
 			inputField.setEnabled(true);
 			takeAction();
 		}
+		// set color
 		else if (ac.equals("color")) {
 			String inputText = inputField.getText();
 			inputField.setText("");
-			if (inputText.toLowerCase().equals("red")) {
-				chooseColor(Color.RED);
-			}
-			else if (inputText.toLowerCase().equals("green")) {
-				chooseColor(Color.GREEN);
-			}
-			else if (inputText.toLowerCase().equals("blue")) {
-				chooseColor(Color.BLUE);
-			}
-			else if (inputText.toLowerCase().equals("yellow")) {
-				chooseColor(Color.YELLOW);
-			}
+			chooseColorFromText(inputText);
 		}
+		// set color and continue turn
 		else if (ac.equals("color continue")) {
 			String inputText = inputField.getText();
 			inputField.setText("");
-			if (inputText.toLowerCase().equals("red")) {
-				chooseColor(Color.RED);
-			}
-			else if (inputText.toLowerCase().equals("green")) {
-				chooseColor(Color.GREEN);
-			}
-			else if (inputText.toLowerCase().equals("blue")) {
-				chooseColor(Color.BLUE);
-			}
-			else if (inputText.toLowerCase().equals("yellow")) {
-				chooseColor(Color.YELLOW);
-			}
+			chooseColorFromText(inputText);
 			startHumanTurn();
 		}
+		// set color and end turn
 		else if (ac.equals("color next")) {
 			String inputText = inputField.getText();
 			inputField.setText("");
-			if (inputText.toLowerCase().equals("red")) {
-				chooseColor(Color.RED);
+			if (chooseColorFromText(inputText)) {
+				nextPlayer();
 			}
-			else if (inputText.toLowerCase().equals("green")) {
-				chooseColor(Color.GREEN);
-			}
-			else if (inputText.toLowerCase().equals("blue")) {
-				chooseColor(Color.BLUE);
-			}
-			else if (inputText.toLowerCase().equals("yellow")) {
-				chooseColor(Color.YELLOW);
-			}
-			else {
-				return;
-			}
-			nextPlayer();
 		}
+		// play or draw card
 		else if (ac.equals("play/draw")) {
 			String inputText = inputField.getText();
 			inputField.setText("");
 			if (hasDrawnCard && inputText.equals("")) {
+				// end turn
 				nextPlayer();
 			}
 			else if (!hasDrawnCard && inputText.equals("")) {
+				// draw card
 				draw();
 			}
 			else {
+				// play card at inputed index
 				int cardIndex = -1;
+				// check formatting of integer
 				try {
 					cardIndex = Integer.parseInt(inputText) - 1;
 				} catch (NumberFormatException ex) {return;}
 				Card selectedCard = currentPlayerHand().getCards().get(cardIndex);
-				if (hasDrawnCard && cardIndex == currentPlayer().handSize() - 1) {
-					play(selectedCard);
-				}
-				else if (currentPlayerHand().getMatches(pile.topCard()).contains(selectedCard)) {
+				// only play card if it is allowed
+				// (a card that matches the top card, must be the card that was drawn if a card has been drawn)
+				if ((hasDrawnCard && cardIndex == currentPlayer().handSize() - 1)
+						|| currentPlayerHand().getMatches(pile.topCard()).contains(selectedCard)) {
 					play(selectedCard);
 				}
 			}
 		}
+		// start next round
 		else if (ac.equals("next round")) {
+			// set up next round
+			reset();
+			setRandomPlayer();
 			inputField.setEnabled(true);
 			nextPlayer();
 		}
