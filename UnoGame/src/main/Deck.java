@@ -9,7 +9,7 @@ import java.util.Collections;
 public class Deck {
 	
 	/** The deck of cards */
-	private ArrayList<Card> deck;
+	private ArrayList<Card> cardList;
 	
 	/**
 	 * Construct a new Deck with the standard Uno Cards<br>
@@ -25,7 +25,7 @@ public class Deck {
 	 * <li><s>4 Wild Draw Four cards</s> These will be added via {@link addWildDraw4s()}
 	 */
 	public Deck() {
-		deck = new ArrayList<>();
+		cardList = new ArrayList<>();
 		addNonWildDraw4s();
 	}
 	
@@ -37,21 +37,21 @@ public class Deck {
 			// don't add NONE
 			if (!color.equals(Color.NONE)) {
 				// add one zero
-				deck.add(new Card(Rank.NUM0, color));
+				cardList.add(new Card(Rank.NUM0, color));
 				// add two of each of the other number and action cards
 				for (Rank rank: Rank.values()) {
 					if (!rank.equals(Rank.NUM0) && !Card.isWildRank(rank)) {
-						deck.add(new Card(rank, color));
-						deck.add(new Card(rank, color));
+						cardList.add(new Card(rank, color));
+						cardList.add(new Card(rank, color));
 					}
 				}
 			}
 		}
 		// add wild cards
 		for (int i = 0; i < 4; i++) {
-			deck.add(new Card(Rank.WILD, Color.NONE));
+			cardList.add(new Card(Rank.WILD, Color.NONE));
 		}
-		Collections.shuffle(deck);
+		Collections.shuffle(cardList);
 	}
 	
 	/**
@@ -60,16 +60,16 @@ public class Deck {
 	 */
 	public void addWildDraw4s() {
 		for (int i = 0; i < 4; i++) {
-			deck.add(new Card(Rank.WILD_DRAW_FOUR, Color.NONE));
+			cardList.add(new Card(Rank.WILD_DRAW_FOUR, Color.NONE));
 		}
-		Collections.shuffle(deck);
+		Collections.shuffle(cardList);
 	}
 	
 	/**
 	 * @return whether the deck is empty
 	 */
 	public boolean isEmpty() {
-		return deck.isEmpty();
+		return cardList.isEmpty();
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public class Deck {
 	 * @return the card dealt
 	 */
 	public Card deal() {
-		return deck.remove(0);
+		return cardList.remove(0);
 	}
 	
 	/**
@@ -85,9 +85,9 @@ public class Deck {
 	 * @param pile the discard pile with the deck's cards
 	 */
 	public void reset(Pile pile) {
-		deck = pile.reset();
-		Collections.shuffle(deck);
-		for (Card card: deck) {
+		cardList = pile.reset();
+		Collections.shuffle(cardList);
+		for (Card card: cardList) {
 			if (card.isActionCard()) {
 				card.setActive(true);
 			}
@@ -102,7 +102,7 @@ public class Deck {
 	 * Be sure to add the wild draw 4s after setting the first card of the deck
 	 */
 	public void hardReset() {
-		deck.clear();
+		cardList.clear();
 		addNonWildDraw4s();
 	}
 	
@@ -110,7 +110,7 @@ public class Deck {
 	 * @return the number of cards in the deck
 	 */
 	public int numCards() {
-		return deck.size();
+		return cardList.size();
 	}
 
 }

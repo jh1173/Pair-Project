@@ -156,6 +156,7 @@ public class Game implements ActionListener{
 	 * @param inc the increment of the player index
 	 */
 	public void incrementPlayerIndex(int inc) {
+		// TODO see if argument is necessary
 		currentPlayerIndex = Math.floorMod(currentPlayerIndex + inc, numPlayers());
 	}
 
@@ -427,9 +428,9 @@ public class Game implements ActionListener{
 	public void startGame(int numPlayers) {
 		// set up players
 		players = new Player[numPlayers];
-		players[0] = new Player(deck, pile);
+		players[0] = new Player();
 		for (int i = 1; i < numPlayers; i++) {
-			players[i] = new ComputerPlayer(deck, pile);
+			players[i] = new ComputerPlayer();
 		}
 		points = new int[numPlayers];
 		// initialize game data

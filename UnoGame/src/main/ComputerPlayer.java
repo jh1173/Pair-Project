@@ -11,8 +11,8 @@ public class ComputerPlayer extends Player {
 	 * Construct a Computer Player with a hand from the deck
 	 * @param deck the deck
 	 */
-	public ComputerPlayer(Deck deck, Pile pile) {
-		super(deck, pile);
+	public ComputerPlayer() {
+		super();
 	}
 	
 	/**

@@ -8,13 +8,13 @@ import java.util.ArrayList;
 public class Hand {
 	
 	/** A list containing the Cards in the hand */
-	private ArrayList<Card> hand;
+	private ArrayList<Card> cardList;
 	
 	/**
 	 * Create a hand using cards from deck
 	 */
 	public Hand() {
-		hand = new ArrayList<>();
+		cardList = new ArrayList<>();
 	}
 	
 	/**
@@ -22,7 +22,7 @@ public class Hand {
 	 * @return the cards in the hand
 	 */
 	public ArrayList<Card> getCards(){
-		return hand;
+		return cardList;
 	}
 	
 	/**
@@ -30,7 +30,7 @@ public class Hand {
 	 * @param card the card to be added
 	 */
 	public void addCard(Card card) {
-		hand.add(card);
+		cardList.add(card);
 	}
 	
 	/**
@@ -39,7 +39,7 @@ public class Hand {
 	 * @return whether the card was removed successfully
 	 */
 	public boolean removeCard(Card card) {
-		return hand.remove(card);
+		return cardList.remove(card);
 	}
 	
 	/**
@@ -47,7 +47,7 @@ public class Hand {
 	 */
 	public int handValue() {
 		int totalValue = 0;
-		for (Card card: hand) {
+		for (Card card: cardList) {
 			totalValue += card.getPointValue();
 		}
 		return totalValue;
@@ -63,7 +63,7 @@ public class Hand {
 		ArrayList<Card> matches = new ArrayList<>();
 		ArrayList<Card> wd4s = new ArrayList<>();
 		// look for cards that match
-		for (Card card: hand) {
+		for (Card card: cardList) {
 			if (card.hasRank(Rank.WILD_DRAW_FOUR)) {
 				wd4s.add(card);
 			}

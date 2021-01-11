@@ -15,15 +15,15 @@ public class Player {
 	 * @param deck the deck that will be used to generate the hand
 	 * @param pile the pile where cards will go when played
 	 */
-	public Player(Deck deck, Pile pile) {
+	public Player() {
 		hand = new Hand();
-		//fillHand(deck, pile);
 	}
 	
 	/**
 	 * @return (a reference to) the player's Hand
 	 */
 	public Hand getHand() {
+		// TODO consider getCards(): hand.getCards()
 		return hand;
 	}
 	
@@ -33,6 +33,7 @@ public class Player {
 	 * @param pile the pile onto which the player plays cards
 	 */
 	public void fillHand(Deck deck, Pile pile) {
+		// TODO throw exception if game has already started
 		hand.getCards().clear();
 		for (int i = 0; i < 7; i++) {
 			drawCard(deck, pile);
@@ -95,15 +96,8 @@ public class Player {
 	}
 	
 	/**
-	 * Set the top card of pile to the designated color
-	 * Precondition: the top card of pile is a wild card with Color NONE
-	 * @param pile the pile
-	 * @param color a Color that is not NONE
+	 * @return number of cards in hand
 	 */
-	public void setColor(Pile pile, Color color) {
-		pile.topCard().setColor(color);
-	}
-	
 	public int handSize() {
 		return getHand().getCards().size();
 	}
