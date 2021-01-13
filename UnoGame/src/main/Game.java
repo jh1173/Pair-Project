@@ -41,8 +41,10 @@ public class Game implements ActionListener{
 	private JPanel gameWindow = new JPanel();
 	private JLabel deckLabel = new JLabel();
 	private JLabel pileLabel = new JLabel();
+	private CardPanel pileImage = new CardPanel(0.5);
 	private JTextArea playerText = new JTextArea();
 	private JTextArea humanPlayerCards = new JTextArea();
+	private CardPanel humanCardImages = new CardPanel(0.3);
 	private JButton continueButton = new JButton("Continue");
 	private JTextField inputField = new JTextField(8);
 	private JLabel status = new JLabel();
@@ -93,6 +95,7 @@ public class Game implements ActionListener{
 		frame.setSize(700, 700);
 		frame.setVisible(true);
 		// game window
+		gameWindow.setLayout(new GridBagLayout());
 		continueButton.addActionListener(this);
 		playerText.setEditable(false);
 		humanPlayerCards.setEditable(false);
@@ -100,16 +103,20 @@ public class Game implements ActionListener{
 		gameWindow.add(deckLabel, c);
 		c.gridy = 1;
 		gameWindow.add(pileLabel, c);
-		c.gridy = 2;
+		c.gridx = 1;
+		gameWindow.add(pileImage, c);
+		c.gridx = 0; c.gridy = 2;
 		gameWindow.add(playerText, c);
 		c.gridy = 3;
 		gameWindow.add(humanPlayerCards, c);
 		c.gridy = 4;
-		gameWindow.add(inputField);
+		gameWindow.add(inputField, c);
 		c.gridx = 1;
-		gameWindow.add(continueButton);
+		gameWindow.add(continueButton, c);
 		c.gridx = 0; c.gridy = 5;
-		gameWindow.add(status);
+		gameWindow.add(status, c);
+		c.gridy = 6;
+		gameWindow.add(humanCardImages, c);
 		// set up deck and pile for games
 		deck = new Deck();
 		pile = new Pile(deck);
@@ -452,6 +459,7 @@ public class Game implements ActionListener{
 				// deck and pile labels
 				deckLabel.setText("Deck: " + Integer.toString(deck.numCards()));
 				pileLabel.setText("Pile: " + pile.topCard().toString());
+				pileImage.setCards(pile.topCard());
 				// list of players
 				String playerInfo = "";
 				for (int i = 0; i < players.length; i++) {
@@ -481,6 +489,8 @@ public class Game implements ActionListener{
 					cardNum++;
 				}
 				humanPlayerCards.setText(humanCards);
+				Card[] humanCardArray = new Card[playerHand.getCards().size()];
+				humanCardImages.setCards(playerHand.getCards().toArray(humanCardArray));
 			}
 		});
 	}
@@ -530,18 +540,13 @@ public class Game implements ActionListener{
 			inputField.setEnabled(true);
 			takeAction();
 		}
-		// set color
-		else if (ac.equals("color")) {
-			String inputText = inputField.getText();
-			inputField.setText("");
-			chooseColorFromText(inputText);
-		}
 		// set color and continue turn
 		else if (ac.equals("color continue")) {
 			String inputText = inputField.getText();
 			inputField.setText("");
-			chooseColorFromText(inputText);
-			startHumanTurn();
+			if (chooseColorFromText(inputText)) {
+				startHumanTurn();
+			}
 		}
 		// set color and end turn
 		else if (ac.equals("color next")) {
@@ -565,12 +570,16 @@ public class Game implements ActionListener{
 			}
 			else {
 				// play card at inputed index
-				int cardIndex = -1;
+				int cardIndex;
 				// check formatting of integer
 				try {
 					cardIndex = Integer.parseInt(inputText) - 1;
 				} catch (NumberFormatException ex) {return;}
-				Card selectedCard = currentPlayerHand().getCards().get(cardIndex);
+				Card selectedCard;
+				if (cardIndex >= 0 && cardIndex < currentPlayerHand().getCards().size()) {
+					selectedCard = currentPlayerHand().getCards().get(cardIndex);
+				}
+				else {return;}
 				// only play card if it is allowed
 				// (a card that matches the top card, must be the card that was drawn if a card has been drawn)
 				if ((hasDrawnCard && cardIndex == currentPlayer().handSize() - 1)
