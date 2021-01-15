@@ -15,6 +15,8 @@ public class ComputerPlayer extends Player {
 		super();
 	}
 	
+	// TODO make better methods (these are actually already pretty good)
+	
 	/**
 	 * Chooses a legal card to play
 	 * @param cardToMatch the card that needs to be matched
