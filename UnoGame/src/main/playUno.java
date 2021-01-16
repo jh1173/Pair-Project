@@ -31,19 +31,23 @@ public class playUno extends JFrame {
 	private int currentPlayerIndex = 0;
 	/** whether the current player has already drawn a card from the deck */
 	private boolean hasDrawnCard;
+	/** whether the current player (human) need to take an action */
+	private boolean isAction;
+	/** The color choosen by he current player (human) */
+	private Color colorChoice = Color.GRAY;
 	/** whether the game is over */
 	private boolean gameOver = false;
 	/** time (in milliseconds) each computer player uses to move */
 	private static final int COMPUTER_MOVE_TIME = 3000;
 	
 	//Path to image files
-	String path = "/Users/MyMac/Documents/workspace/UnoGame/Uno_Cards/";
+	String path = "/Users/km/Desktop/Kalpak/Pair-Project-main/UnoGame/src/main/Uno_Cards/";
 	
 	//JLayeredPane playArea;
 	JLayeredPane playArea = getLayeredPane( );
 	int xPlayAreAdjustment = 0;
     int yPlayAreaAdjustment = 2;
-	int currentPlayAreaStartPosX = 180;
+	int currentPlayAreaStartPosX = 230;
 	int currentPlayAreaStartPosY = 180;
 	
 	int xHandAreAdjustment = 5;
@@ -51,10 +55,11 @@ public class playUno extends JFrame {
 	int currentHandAreaStartPosX = 5;
 	int currentHandAreaStartPosY = 5;
 	
-	int handAreaCurrentCardNumber = 0;
+	int handAreaCounter = 0;
 	
-	JLabel label, label1,label2, label3, cardLabel;
-	JLabel handArealabel[] = new JLabel[108];
+	//JLabel label, label1,label2, label3, cardLabel;
+	JLabel deckAreaFooter = new JLabel();
+	JLabel handArealabel[] = new JLabel[200];
     int jlabelNumber = 0;
     Color color;
     
@@ -118,7 +123,6 @@ public class playUno extends JFrame {
 		
 		//Deck cards
 		JPanel decCardPanel = new JPanel(new FlowLayout());
-		//decCardPanel.setLayout(new BoxLayout(decCardPanel, BoxLayout.Y_AXIS));
 		
 		Point origin = new Point(5,5);
 		color = Color.GRAY;
@@ -138,7 +142,8 @@ public class playUno extends JFrame {
 		
 		//Footer Label
 		String footer = "Card Left: " + deck.numCards();
-		JLabel deckAreaFooter = new JLabel(footer,JLabel.CENTER);
+		message(footer);
+		//JLabel deckAreaFooter = new JLabel(footer,JLabel.CENTER);
 		deckAreaFooter.setVerticalAlignment(JLabel.TOP);
 		deckAreaFooter.setFont(new Font("Verdana", Font.BOLD, 14));
 		deckAreaFooter.setPreferredSize(new Dimension(50, 20));
@@ -152,7 +157,6 @@ public class playUno extends JFrame {
 		westPanel.add(deckAreaHeader, BorderLayout.NORTH);
 		westPanel.add(decCardPanel, BorderLayout.CENTER);
 		westPanel.add(deckAreaFooter, BorderLayout.SOUTH);
-		
 		//Main South Area holding your Hand
 		JPanel handPanel = new JPanel(new FlowLayout());
 		
@@ -174,7 +178,7 @@ public class playUno extends JFrame {
 		JLabel handAreaHeader = new JLabel("Your Hand",JLabel.CENTER);
 		handAreaHeader.setVerticalAlignment(JLabel.CENTER);
 		handAreaHeader.setFont(new Font("Verdana", Font.BOLD, 18));
-		handAreaHeader.setPreferredSize(new Dimension(800, 22));
+		handAreaHeader.setPreferredSize(new Dimension(900, 22));
 		handAreaHeader.setForeground(Color.RED);
 		
 		southPanel.add(handAreaHeader, BorderLayout.NORTH);
@@ -250,15 +254,6 @@ public class playUno extends JFrame {
 		deck = new Deck();
 		pile = new Pile(deck);
 		deck.addWildDraw4s();
-		Card card = pile.topCard();
-		System.out.println("Init " + card.toString());
-		//System.out.println(card.getPointValue());
-		//System.out.println(card.getRank());
-		//System.out.println(card.getRankIndex());
-		//System.out.println(card.getColor());
-		//System.out.println(card.toString());
-		
-		playCard(card.toString());
 	}
 
 	private void computerAreaCreatePlayer(int i, String string, Color color, Point origin, JPanel buttonPanel) {
@@ -292,41 +287,130 @@ public class playUno extends JFrame {
 		
 	}
 	
-	private void handAreaPlaceCard(int cardNumber, Card card, String cardFace, Color color, Point origin,Container handPanel) {
+	private void handAreaPlaceCard(int cardNumber, Card card, String cardFace, Color color, Point origin, Container handPanel) {
 		
 		String imageFile = path + cardFace + ".png";
 		handArealabel[cardNumber] = createCardImage(imageFile, origin);
-		handArealabel[cardNumber].setPreferredSize(new Dimension(120, 150));
+		handArealabel[cardNumber].setPreferredSize(new Dimension(60, 80));
 		handPanel.add(handArealabel[cardNumber]);
-		        
+		//System.out.println("hand Area ... " +  pile.numCards() + "  " + pile.topCard().toString());        
         handArealabel[cardNumber].addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-            	
-            	// Check the validity of the move and then move the card
-            	if (validateHumanTurn()) {        	
-	            	
-	            	// Move the clicked card to Play Area         
-	                playCard(cardFace);
-	                pile.addCard(card);
-	                System.out.println("human click " + card.toString());
-	                
-	                //Remove Card from Hand Area after moved to Play Area
-	                Container parent = handArealabel[cardNumber].getParent();
-	                parent.remove(handArealabel[cardNumber]);
-	                
-	                //Remove Card from Human player Hand
-	                players[currentPlayerIndex].getHand().removeCard(card);    
-	                parent.validate();
-	                parent.repaint();
-	                
-	                if (players[currentPlayerIndex].handSize() == 0) {
-	                	JOptionPane.showMessageDialog(null, "Congratulatios !!! You won the game ...");
-	                }
-	                
-	            }
+            	if (validateHumanTurn()) {        
+            			//System.out.println("Play/Draw ... " +  pile.numCards() + "  " + pile.topCard().getRank());
+	            		ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
+	        			// draw card
+	        			if (matches.size() == 0) {
+	        				JOptionPane.showMessageDialog(null, "<html>No valid card to move !!! <br> System is drawing card for you ...</html>");
+	        				Card cardNew = drawCard(deck, pile);
+	        				int counter = players[0].handSize();
+		    			    handAreaPlaceCard(counter, cardNew, cardNew.toString(), color, origin, handPanel);
+		    			    Container parent = handArealabel[counter].getParent();
+		    			    String footer = "Card Left: " + deck.numCards();
+		    				message(footer);
+		    			    parent.validate();
+			                parent.repaint();
+			                //hasDrawnCard = true;
+	        				//hasDrawnCard = false;
+	        			} else {      				
+	        				// Move the clicked card to Play Area after checking validity of the move
+	        				if (card.matches(pile.topCard())) {
+	        					playCard(cardFace);
+				                pile.addCard(card);
+				              //Remove Card from Hand Area Panel after moved to Play Area
+				                Container parent = handArealabel[cardNumber].getParent();
+				                parent.remove(handArealabel[cardNumber]);
+				                parent.validate();
+				                parent.repaint();
+
+				                if (card.hasRank(Rank.WILD)) {
+				                	getColorChoice();
+				                	putColorChangeCard();
+				                }
+				                //System.out.println("human move "  +  pile.numCards() + "  " + card.toString());
+				                //Remove Card from Human player Hand
+				                players[currentPlayerIndex].getHand().removeCard(card);    
+				                
+				                if (currentPlayer().oneCardLeft()) {
+				                	JOptionPane.showMessageDialog(null, "UNO !!!");
+				    			}
+				                
+				                if (players[currentPlayerIndex].handSize() == 0) {
+				                	JOptionPane.showMessageDialog(null, "Congratulatios !!! You won the game ...");
+				                }
+				                
+	        				} else {
+	        					// Move the wild_four card to Play Area only possible.
+	        					if (card.hasRank(Rank.WILD_DRAW_FOUR)) {
+    	        					playCard(cardFace);
+    				                pile.addCard(card);
+    				              //Remove Card from Hand Area after moved to Play Area
+    				                Container parent = handArealabel[cardNumber].getParent();
+    				                parent.remove(handArealabel[cardNumber]);
+    				                parent.validate();
+    				                parent.repaint();
+    				                //Change Color
+    				                getColorChoice();
+    				                putColorChangeCard();
+    				                //System.out.println("human move "  +  pile.numCards() + "  " + card.toString());
+    				                //Remove Card from Human player Hand
+    				                players[currentPlayerIndex].getHand().removeCard(card);    
+    				                
+    				                if (currentPlayer().oneCardLeft()) {
+    				                	JOptionPane.showMessageDialog(null, "UNO !!!");
+    				    			}
+    				                
+    				                if (players[currentPlayerIndex].handSize() == 0) {
+    				                	JOptionPane.showMessageDialog(null, "Congratulatios !!! You won the game ...");
+    				                }
+	        					} else {
+	        						JOptionPane.showMessageDialog(null, "<html>Wrong Move !!!<br>Try Again</html>");
+	        					}
+	        				}
+	        			}  	
+	            } else {
+	            	if (isAction) {
+	            		int noOfCard = takeAction();
+	            		for(int i = 0; i < noOfCard; i++) {
+	            			Card cardNew = drawCard(deck, pile);
+		    			    handAreaPlaceCard(players[currentPlayerIndex].handSize(), cardNew, cardNew.toString(), color, origin, handPanel);
+		    			    Container parent = handArealabel[cardNumber].getParent();
+		    			    String footer = "Card Left: " + deck.numCards();
+		    				message(footer);
+		    			    parent.validate();
+			                parent.repaint();
+	            		}
+	            		isAction = false;
+	            	} else 
+	            		putColorChangeCard();          	
+	            	}      	
             }
-			
+
+			private void putColorChangeCard() {
+				if (!colorChoice.equals(Color.GRAY))
+    			{   
+    		        Point origin = new Point(currentPlayAreaStartPosX, currentPlayAreaStartPosY); 
+            		JLabel cardLabel = new JLabel("<html><br>New<br>Color</html>",JLabel.CENTER);
+            		cardLabel.setVerticalAlignment(JLabel.CENTER);
+            		cardLabel.setHorizontalAlignment(JLabel.CENTER);
+                    cardLabel.setFont(new Font("Verdana", Font.PLAIN, 12));
+                    cardLabel.setOpaque(true);
+                    cardLabel.setBackground(colorChoice);
+                    cardLabel.setForeground(Color.black);
+                    cardLabel.setBorder(BorderFactory.createLineBorder(Color.black));
+                    cardLabel.setBounds(origin.x, origin.y, 60, 80);
+            		cardLabel.setPreferredSize(new Dimension(60, 80));
+            		
+            		currentPlayAreaStartPosX += xPlayAreAdjustment;
+                    currentPlayAreaStartPosY -= yPlayAreaAdjustment;
+                    origin = new Point(currentPlayAreaStartPosX, currentPlayAreaStartPosY); 
+                    
+                    // Place the card on Top.
+                    playArea.add(cardLabel, new Integer(++jlabelNumber));
+    				colorChoice = Color.GRAY;            		
+    			}  				
+			}		
         });		
 	}
 
@@ -337,7 +421,7 @@ public class playUno extends JFrame {
         Point origin = new Point(currentPlayAreaStartPosX, currentPlayAreaStartPosY); 
         
         String imageFile = path + cardFace + ".png";
-        label = createCardImage(imageFile, origin);
+        JLabel label = createCardImage(imageFile, origin);
         
         // Place the buttons on Top.
         playArea.add(label, new Integer(++jlabelNumber));		
@@ -345,8 +429,8 @@ public class playUno extends JFrame {
 	
   //Create and set up a card image label.
     private JLabel createCardImage(String text, Point origin) {
-    	
-    	JLabel label = new JLabel(" ");
+    	String txt = "img - " + ++handAreaCounter;
+    	JLabel label = new JLabel(txt);
     	label.setForeground(color);
 		label.setBounds(origin.x, origin.y, 60, 80);
 		ImageIcon imageIcon = new ImageIcon(new ImageIcon(text).getImage().getScaledInstance(60, 80, Image.SCALE_DEFAULT));
@@ -355,7 +439,15 @@ public class playUno extends JFrame {
         return label;
     }
     
-    ///////////////////
+    void message(String msg) {
+    	deckAreaFooter.setText(msg);
+    	deckAreaFooter.setVerticalAlignment(JLabel.TOP);
+		deckAreaFooter.setFont(new Font("Verdana", Font.BOLD, 14));
+		deckAreaFooter.setPreferredSize(new Dimension(50, 20));
+		deckAreaFooter.setForeground(Color.BLACK);
+    }
+
+    
     /**
 	 * Reset the deck, pile, and all players' hands for a new round
 	 */
@@ -372,6 +464,15 @@ public class playUno extends JFrame {
 		}
 		// revert play order
 		playOrder = 1;
+		Card card = pile.topCard();
+		//System.out.println("Init "  +  pile.numCards() + "  " + card.toString());
+		//System.out.println(card.getPointValue());
+		//System.out.println(card.getRank());
+		//System.out.println(card.getRankIndex());
+		//System.out.println(card.getColor());
+		//System.out.println(card.toString());
+		
+		playCard(card.toString());
 	}
     
 	/**
@@ -420,38 +521,128 @@ public class playUno extends JFrame {
 	
 	private boolean validateHumanTurn() {
 		Card topCard = pile.topCard();
-		System.out.println("validate " + topCard.toString());
+		//System.out.println("inside validate method " +  pile.numCards() + "  " + topCard.toString());
 		// if the top card is wild and not assigned a color (unlikely)
 		if (topCard.hasColor(main.Color.NONE)) {
-			// TODO set up listener to execute chooseColor(color);
-			JOptionPane.showMessageDialog(null, "Pick a Color");
-			//continueButton.setActionCommand("color continue");
+			getColorChoice();
+			
+	        return false;
 		}
 		// action card
 		else if (topCard.isActive()) {
-			
-			// TODO set up listener to execute takeAction();
-			JOptionPane.showMessageDialog(null, "Take Action");;
-			//continueButton.setActionCommand("action");
+
+			isAction = true;
+			return false;
 		}
 		else {
-			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
-			// draw card
-			if (matches.size() == 0) {
-				// TODO set up listener to execute draw();
-				JOptionPane.showMessageDialog(null, "Draw Card");
-				//continueButton.setActionCommand("play/draw");
-			}
-			// play card
-			else {
-				// TODO set up listener to execute play(cardToPlay);
-				//status.setText("play card");
 				return true;
-			}
 		}
-		return false;
 	 }	
 	
+	private void getColorChoice() {	
+		JPanel colorPanel = new JPanel();
+        JRadioButton redButton = new JRadioButton("RED");
+        JRadioButton blueButton = new JRadioButton("BLUE");
+        JRadioButton yellowButton = new JRadioButton("YELLOW");
+        JRadioButton greenButton = new JRadioButton("GREEN");
+        colorPanel.add(redButton);
+        colorPanel.add(blueButton);
+        colorPanel.add(yellowButton);
+        colorPanel.add(greenButton);
+
+        JOptionPane.showMessageDialog(null, colorPanel,"Choose a Color", JOptionPane.INFORMATION_MESSAGE);
+        if(redButton.isSelected()) {
+        	chooseColor(main.Color.RED);
+        	colorChoice = Color.RED;
+        }	
+        if(blueButton.isSelected()) {
+        	chooseColor(main.Color.BLUE);
+        	colorChoice = Color.BLUE;;
+        }	
+        if(yellowButton.isSelected()) {
+        	chooseColor(main.Color.YELLOW);
+        	colorChoice = Color.YELLOW;
+        }	
+        if(greenButton.isSelected()) {
+        	chooseColor(main.Color.GREEN);
+        	colorChoice = Color.GREEN;
+        }	
+	}
+
+	/**
+	 * The current player draws a card from the deck
+	 */
+	public void draw() {
+		Card cardDrawn = currentPlayer().drawCard(deck, pile);
+		//hasDrawnCard = true;
+		// ask player whether to play card if playable
+		/*ArrayList<Card> matches = currentPlayerHand().getMatches(pile.topCard());
+		if (matches.contains(cardDrawn)) {
+			if (currentPlayerIsHuman()) {
+				updateDisplay();
+				// TODO prompt to play(cardToPlay) for the card drawn
+				status.setText("play card or continue");
+				continueButton.setActionCommand("play/draw");
+			}
+			else {
+				play(cardDrawn);
+			}
+		}
+		else {
+			nextPlayer();
+		}*/
+	}
+	
+	/**
+	 * draw a card from the deck and add it to the hand
+	 * @param deck the deck from which the card was drawn
+	 * @param pile the pile onto which cards will be played (in case the deck needs to reset)
+	 * @return the card that was drawn
+	 */
+	 public Card drawCard(Deck deck, Pile pile) {
+		Card card = deck.deal();
+		players[currentPlayerIndex].getHand().addCard(card);
+		if (deck.isEmpty()) {
+			deck.reset(pile);
+		}
+		hasDrawnCard = true;
+		return card;
+	 }
+	
+	 /**
+	 * The current player sets the color of a wild card that has not yet been assigned a color
+	 */
+	public void chooseColor(main.Color color) {
+		pile.topCard().setColor(color);
+	}
+	
+	/**
+	 * The current player acts on an action card, the action card is deactivated
+	 */
+	public int takeAction() {
+		int noOfCard;
+		// get rank of card
+		Card topCard = pile.topCard();
+		Rank topRank = topCard.getRank();
+		topCard.setActive(false);
+		// draw two cards
+		if (topRank.equals(Rank.DRAW_TWO)) {
+			//currentPlayer().drawCards(deck, pile, 2);
+			noOfCard = 2;
+		}
+		// draw four cards
+		else if (topRank.equals(Rank.WILD_DRAW_FOUR)) {
+			//currentPlayer().drawCards(deck, pile, 4);
+			noOfCard = 4;
+		}
+		// skip turn
+		else {
+			// TODO handle skips (reverse acts like skip in 2 player game)
+			noOfCard = 0;
+		}
+		//nextPlayer();
+		return noOfCard;
+	}
     ////////////////////
 
 }
