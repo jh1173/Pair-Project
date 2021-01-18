@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,6 +19,8 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 public class finalGame implements ActionListener {
+	private JFrame frame;
+
 	/**
 	 * Create a game with the specified number of players
 	 * @param numPlayers
@@ -145,7 +148,7 @@ public class finalGame implements ActionListener {
 		outerPanel.setBackground(new Color(234, 115, 23));
 		
 		//The frame containing the outerPanel.
-		JFrame frame = new JFrame("Welcome"); 
+		frame = new JFrame("Welcome"); 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setContentPane(outerPanel);
 		frame.setPreferredSize(new Dimension(1200, 900));
@@ -158,7 +161,8 @@ public class finalGame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		
+		frame.setVisible(false);
+		new playUno().startup();
 	}
 	
 	/**
