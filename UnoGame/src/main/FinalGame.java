@@ -56,32 +56,32 @@ public class FinalGame implements ActionListener {
 				"The aim of the game is to be the first player to score 500 points, achieved (usually over several rounds of play) by being the first to play all of one's own cards and scoring points for the cards still held by the other players.\n" + 
 				"The deck consists of 108 cards: four each of \"Wild\" and \"Wild Draw Four,\" and 25 each of four different colors (red, yellow, green, blue). Each color consists of one zero, two each of 1 through 9, and two each of \"Skip,\" \"Draw Two,\" and \"Reverse.\" These last three types are known as \"action cards.\"\n" + 
 				"To start a hand, seven cards are dealt to each player, and the top card of the remaining deck is flipped over and set aside to begin the discard pile. The player to the dealer's left plays first unless the first card on the discard pile is an action or Wild card (see below). On a player's turn, they must do one of the following:\n" + 
-				"•	play one card matching the discard in color, number, or symbol\n" + 
-				"•	play a Wild card, or a playable Wild Draw Four card (see restriction below)\n" + 
-				"•	draw the top card from the deck, then play it if possible\n" + 
+				"- play one card matching the discard in color, number, or symbol\n" + 
+				"- play a Wild card, or a playable Wild Draw Four card (see restriction below)\n" + 
+				"- draw the top card from the deck, then play it if possible\n" + 
 				"Cards are played by laying them face-up on top of the discard pile. Play proceeds clockwise around the table.\n" + 
 				"\n" + 
-				"Action or Wild cards have the following effects:\n" + 
-				"Card	Effect when played from hand	Effect as first discard\n" + 
-				"Skip	Next player in sequence misses a turn	Player to dealer's left misses a turn\n" + 
-				"Reverse	Order of play switches directions (clockwise to counterclockwise, or vice versa)	Dealer plays first; play proceeds counterclockwise\n" + 
-				"Draw Two (+2)	Next player in sequence draws two cards and misses a turn	Player to dealer's left draws two cards and misses a turn\n" + 
-				"Wild	Player declares the next color to be matched (may be used on any turn even if the player has matching color; current color may be chosen as the next to be matched)	Player to dealer's left declares the first color to be matched and plays a card in it\n" + 
-				"Wild Draw Four/Draw Four Wild (+4 and wild)	Player declares the next color to be matched; next player in sequence draws four cards and misses a turn. May be played only if the player has no cards of the current color.	Return card to the deck, shuffle, flip top card to start discard pile\n" + 
+				"Action or Wild cards have the following effects:\n" +
+				"- Skip:  Next player in sequence misses a turn\n" + 
+				"- Reverse:  Order of play switches directions\n" + 
+				"- Draw Two (+2):  Next player draws two cards and misses a turn\n" + 
+				"- Wild:  Player declares the next color to be matched (current color may be chosen as the next to be matched)\n" + 
+				"- Wild Draw Four (+4 & wild):  Player declares the next color to be matched; next player draws four cards and misses a turn. May be played only if the player has no cards of the current color.\n" + 
 				"\n" + 
-				"\n" + 
-				"•	A player who draws from the deck must either play or keep that card and may play no other card from their hand on that turn.\n" + 
-				"•	A player may play a Wild card at any time, even if that player has other playable cards.\n" + 
-				"•	A player may play a Wild Draw Four card only if that player has no cards matching the current color. The player may have cards of a different color matching the current number or symbol or a Wild card and still play the Wild Draw Four card.\n" + 
-				"•	If the entire deck is used during play, the top discard is set aside and the rest of the pile is shuffled to create a new deck. Play then proceeds normally.\n" + 
-				"•	It is illegal to trade cards of any sort with another player.\n" + 
+				"- A player who draws from the deck must either play or keep that card and may play no other card from their hand on that turn.\n" + 
+				"- A player may play a Wild card at any time, even if that player has other playable cards.\n" + 
+				"- A player may play a Wild Draw Four card only if that player has no cards matching the current color. The player may have cards of a different color matching the current number or symbol or a Wild card and still play the Wild Draw Four card.\n" + 
+				"- If the entire deck is used during play, the top discard is set aside and the rest of the pile is shuffled to create a new deck. Play then proceeds normally.\n" + 
+				"- It is illegal to trade cards of any sort with another player.\n" + 
 				"\n" + 
 				"The first player to get rid of their last card (\"going out\") wins the hand and scores points for the cards held by the other players. Number cards count their face value, all action cards count 20, and Wild and Wild Draw Four cards count 50. If a Draw Two or Wild Draw Four card is played to go out, the next player in the sequence must draw the appropriate number of cards before the score is tallied.\n" + 
 				"The first player to score 500 points wins the game.\n" + 
 				"\n" + 
 				"Two-player game\n" + 
-				"In [the case of] a two-player game, the Reverse card acts like a Skip card; when played, the other player misses a turn.\n" + 
-				"");
+				"In a two-player game, the Reverse card acts like a Skip card; when played, the other player misses a turn.\n" + 
+				"	");
+		gameRules.setLineWrap(true);
+		gameRules.setWrapStyleWord(true);
 		gameRules.setEditable(false);
 		gameRules.setFont(new Font("Verdana", Font.PLAIN, 12));
 		gameRules.setForeground(new Color(11, 3, 45));

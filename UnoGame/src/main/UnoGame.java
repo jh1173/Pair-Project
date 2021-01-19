@@ -705,26 +705,31 @@ public class UnoGame{
 	
 	public void getColorChoice(boolean restartHumanTurn) {	
 		JPanel colorPanel = new JPanel();
+		ButtonGroup buttonGroup = new ButtonGroup();
         JRadioButton redButton = new JRadioButton("RED");
         JRadioButton blueButton = new JRadioButton("BLUE");
         JRadioButton yellowButton = new JRadioButton("YELLOW");
         JRadioButton greenButton = new JRadioButton("GREEN");
+        buttonGroup.add(redButton);
+        buttonGroup.add(blueButton);
+        buttonGroup.add(yellowButton);
+        buttonGroup.add(greenButton);
         colorPanel.add(redButton);
         colorPanel.add(blueButton);
         colorPanel.add(yellowButton);
         colorPanel.add(greenButton);
 
-        JOptionPane.showMessageDialog(null, colorPanel,"Choose a Color", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, colorPanel,"Choose a Color", JOptionPane.QUESTION_MESSAGE);
         if(redButton.isSelected()) {
         	chooseColor(main.Color.RED);
         }	
-        if(blueButton.isSelected()) {
+        else if(blueButton.isSelected()) {
         	chooseColor(main.Color.BLUE);
         }	
-        if(yellowButton.isSelected()) {
+        else if(yellowButton.isSelected()) {
         	chooseColor(main.Color.YELLOW);
         }	
-        if(greenButton.isSelected()) {
+        else { // green
         	chooseColor(main.Color.GREEN);
         }
         
