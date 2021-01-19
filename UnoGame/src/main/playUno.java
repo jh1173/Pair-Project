@@ -16,6 +16,7 @@ import javax.swing.border.LineBorder;
 
 public class playUno extends JFrame {
 	
+	private static final long serialVersionUID = 7974747661368373107L;
 	// Game elements
 	/** the game's deck */
 	private Deck deck;
@@ -33,7 +34,7 @@ public class playUno extends JFrame {
 	private boolean hasDrawnCard;
 	/** whether the current player (human) need to take an action */
 	private boolean isAction;
-	/** The color choosen by he current player (human) */
+	/** The color chosen by the current player (human) */
 	private Color colorChoice = Color.GRAY;
 	/** whether the game is over */
 	private boolean gameOver = false;
@@ -41,10 +42,10 @@ public class playUno extends JFrame {
 	private static final int COMPUTER_MOVE_TIME = 3000;
 	
 	//Path to image files
-	String path = "/Users/km/Desktop/Kalpak/Pair-Project-main/UnoGame/src/main/Uno_Cards/";
+	String path = "Uno_Cards/";
 	
 	//JLayeredPane playArea;
-	JLayeredPane playArea = getLayeredPane( );
+	JLayeredPane playArea = getLayeredPane();
 	int xPlayAreAdjustment = 0;
     int yPlayAreaAdjustment = 2;
 	int currentPlayAreaStartPosX = 230;
@@ -59,11 +60,13 @@ public class playUno extends JFrame {
 	
 	//JLabel label, label1,label2, label3, cardLabel;
 	JLabel deckAreaFooter = new JLabel();
+	CardPanel handAreaPanel = new CardPanel(0.25);
+	JScrollPane handPane = new JScrollPane(handAreaPanel);
 	JLabel handArealabel[] = new JLabel[200];
     int jlabelNumber = 0;
     Color color;
     
-    Card cardStart;
+    //Card cardStart;
     
     int totalPlayer = 10;
     JButton computerPlayer[] = new JButton[20];
@@ -243,7 +246,7 @@ public class playUno extends JFrame {
 		frame.setLocationByPlatform(true);
 		//frame.setResizable( false );
         frame.pack();
-        frame.setLocationRelativeTo( null );
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 	}
 	
@@ -277,7 +280,7 @@ public class playUno extends JFrame {
                 players[i].getHand().removeCard(card);
                 
                 if (players[i].handSize() == 0) {
-                	String msg = "Congratulatios !!! " +  computerPlayer[i].getText() + " won the Game";
+                	String msg = "Congratulations!!! " +  computerPlayer[i].getText() + " won the Game";
                  JOptionPane.showMessageDialog(null, msg);
                } 
 		    }
@@ -333,11 +336,11 @@ public class playUno extends JFrame {
 				                players[currentPlayerIndex].getHand().removeCard(card);    
 				                
 				                if (currentPlayer().oneCardLeft()) {
-				                	JOptionPane.showMessageDialog(null, "UNO !!!");
+				                	JOptionPane.showMessageDialog(null, "UNO!!!");
 				    			}
 				                
 				                if (players[currentPlayerIndex].handSize() == 0) {
-				                	JOptionPane.showMessageDialog(null, "Congratulatios !!! You won the game ...");
+				                	JOptionPane.showMessageDialog(null, "Congratulations!!! You won the game!");
 				                }
 				                
 	        				} else {
@@ -358,14 +361,14 @@ public class playUno extends JFrame {
     				                players[currentPlayerIndex].getHand().removeCard(card);    
     				                
     				                if (currentPlayer().oneCardLeft()) {
-    				                	JOptionPane.showMessageDialog(null, "UNO !!!");
+    				                	JOptionPane.showMessageDialog(null, "UNO!!!");
     				    			}
     				                
     				                if (players[currentPlayerIndex].handSize() == 0) {
-    				                	JOptionPane.showMessageDialog(null, "Congratulatios !!! You won the game ...");
+    				                	JOptionPane.showMessageDialog(null, "Congratulations!!! You won the game!");
     				                }
 	        					} else {
-	        						JOptionPane.showMessageDialog(null, "<html>Wrong Move !!!<br>Try Again</html>");
+	        						JOptionPane.showMessageDialog(null, "<html>You cannot play that card!<br>Try Again</html>");
 	        					}
 	        				}
 	        			}  	
@@ -557,7 +560,7 @@ public class playUno extends JFrame {
         }	
         if(blueButton.isSelected()) {
         	chooseColor(main.Color.BLUE);
-        	colorChoice = Color.BLUE;;
+        	colorChoice = Color.BLUE;
         }	
         if(yellowButton.isSelected()) {
         	chooseColor(main.Color.YELLOW);

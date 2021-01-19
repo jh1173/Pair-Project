@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComponent;
+//import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,14 +18,16 @@ import javax.swing.JTextArea;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
-public class finalGame implements ActionListener {
-	private JFrame frame;
+public class FinalGame implements ActionListener {
+	JFrame frame;
+	JSpinner selectPlayers;
+	
 
 	/**
 	 * Create a game with the specified number of players
 	 * @param numPlayers
 	 */
-	public finalGame() {
+	public FinalGame() {
 		
 		//The northPanel containing the gameHeader label.
 		JPanel northPanel = new JPanel(new BorderLayout(8,8));
@@ -99,7 +101,7 @@ public class finalGame implements ActionListener {
 		JPanel southWestEastPanel = new JPanel(new BorderLayout(8,8));
 		southWestEastPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 		SpinnerModel spinnerModel = new SpinnerNumberModel(2, 2, 10, 1);
-		JSpinner selectPlayers = new JSpinner(spinnerModel);
+		selectPlayers = new JSpinner(spinnerModel);
 		southWestEastPanel.add(selectPlayers, BorderLayout.EAST);
 		southWestEastPanel.setBackground(new Color(0, 245, 212));
 		
@@ -162,7 +164,7 @@ public class finalGame implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		frame.setVisible(false);
-		new playUno().startup();
+		new UnoGame((Integer)selectPlayers.getValue(), frame);
 	}
 	
 	/**
@@ -170,8 +172,7 @@ public class finalGame implements ActionListener {
 	 * @param args not used
 	 */
 	public static void main(String[] args) {
-		@SuppressWarnings("unused")
-		finalGame game = new finalGame();
+		new FinalGame();
 	}
 	
 }

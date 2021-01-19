@@ -45,6 +45,7 @@ public class Game implements ActionListener{
 	private JTextArea playerText = new JTextArea();
 	private JTextArea humanPlayerCards = new JTextArea();
 	private CardPanel humanCardImages = new CardPanel(0.3);
+	private JScrollPane humanCardImagesPane = new JScrollPane(humanCardImages);
 	private JButton continueButton = new JButton("Continue");
 	private JTextField inputField = new JTextField(8);
 	private JLabel status = new JLabel();
@@ -99,6 +100,20 @@ public class Game implements ActionListener{
 		continueButton.addActionListener(this);
 		playerText.setEditable(false);
 		humanPlayerCards.setEditable(false);
+		humanCardImages.addMouseListener(humanCardImages.new CardClickListener() {
+			@Override
+			public boolean clickIsEnabled() {
+				return Game.this.currentPlayerIsHuman();
+			}
+			@Override
+			public boolean cardIsPlayable(Card card) {
+				return Game.this.cardIsPlayable(card);
+			}
+			@Override
+			public void play(Card card) {
+				Game.this.play(card);				
+			}
+		});
 		c.fill = GridBagConstraints.VERTICAL; c.gridx = 0; c.gridy = 0;
 		gameWindow.add(deckLabel, c);
 		c.gridy = 1;
@@ -108,7 +123,7 @@ public class Game implements ActionListener{
 		c.gridx = 0; c.gridy = 2;
 		gameWindow.add(playerText, c);
 		c.gridy = 3;
-		gameWindow.add(humanPlayerCards, c);
+		//gameWindow.add(humanPlayerCards, c);
 		c.gridy = 4;
 		gameWindow.add(inputField, c);
 		c.gridx = 1;
@@ -116,7 +131,9 @@ public class Game implements ActionListener{
 		c.gridx = 0; c.gridy = 5;
 		gameWindow.add(status, c);
 		c.gridy = 6;
-		gameWindow.add(humanCardImages, c);
+		gameWindow.add(humanCardImagesPane, c);
+		humanCardImagesPane.setMinimumSize(new Dimension(humanCardImages.getMaxWidth() + 20, (int)(4.0/3.0 * humanCardImages.getMaxHeight()) + 20));
+		humanCardImagesPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		// set up deck and pile for games
 		deck = new Deck();
 		pile = new Pile(deck);
@@ -163,8 +180,32 @@ public class Game implements ActionListener{
 	 * @param inc the increment of the player index
 	 */
 	public void incrementPlayerIndex(int inc) {
-		// TODO see if argument is necessary
 		currentPlayerIndex = Math.floorMod(currentPlayerIndex + inc, numPlayers());
+	}
+	
+	/**
+	 * determine whether the card is playable
+	 * <p>
+	 * The card must be:
+	 * <li> in the current player's hand
+	 * <li> matching the top card of the pile in number or color
+	 * <li> if a card has been drawn during the turn: the card that was drawn
+	 * </p>
+	 * Additionally, the top card of the pile cannot be active.
+	 * @param card
+	 * @return whether the card is playable
+	 */
+	public boolean cardIsPlayable(Card card) {
+		int cardIndex = currentPlayerHand().getCards().indexOf(card);
+		if (!pile.topCard().isActive() && currentPlayerHand().getMatches(pile.topCard()).contains(card)) {
+			if (hasDrawnCard) {
+				if (cardIndex != currentPlayer().handSize() - 1) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public void startHumanTurn() {
@@ -174,7 +215,6 @@ public class Game implements ActionListener{
 		if (topCard.hasColor(Color.NONE)) {
 			inputField.setEnabled(true);
 			updateDisplay();
-			// TODO set up listener to execute chooseColor(color);
 			status.setText("pick color");
 			continueButton.setActionCommand("color continue");
 		}
@@ -182,7 +222,6 @@ public class Game implements ActionListener{
 		else if (topCard.isActive()) {
 			inputField.setEnabled(false);
 			updateDisplay();
-			// TODO set up listener to execute takeAction();
 			status.setText("take action");
 			continueButton.setActionCommand("action");
 		}
@@ -192,13 +231,11 @@ public class Game implements ActionListener{
 			ArrayList<Card> matches = currentPlayerHand().getMatches(topCard);
 			// draw card
 			if (matches.size() == 0) {
-				// TODO set up listener to execute draw();
 				status.setText("draw card");
 				continueButton.setActionCommand("play/draw");
 			}
 			// play card
 			else {
-				// TODO set up listener to execute play(cardToPlay);
 				status.setText("play card");
 				continueButton.setActionCommand("play/draw");
 			}
@@ -250,7 +287,7 @@ public class Game implements ActionListener{
 		}
 		// skip turn
 		else {
-			// TODO handle skips (reverse acts like skip in 2 player game)
+			
 		}
 		nextPlayer();
 	}
@@ -283,7 +320,6 @@ public class Game implements ActionListener{
 		if (matches.contains(cardDrawn)) {
 			if (currentPlayerIsHuman()) {
 				updateDisplay();
-				// TODO prompt to play(cardToPlay) for the card drawn
 				status.setText("play card or continue");
 				continueButton.setActionCommand("play/draw");
 			}
@@ -311,7 +347,6 @@ public class Game implements ActionListener{
 			if (card.isWildCard()) {
 				if (currentPlayerIsHuman()) {
 					updateDisplay();
-					// TODO prompt to chooseColor(color)
 					status.setText("pick color");
 					continueButton.setActionCommand("color next");
 				}
@@ -342,7 +377,7 @@ public class Game implements ActionListener{
 		Card topCard = pile.topCard();
 		// if there is a winner
 		if (currentPlayer().hasWon()) {
-			// TODO handle win, including next player drawing cards if necessary and switching back to this player
+			// handle win, including next player drawing cards if necessary and switching back to this player
 			if (topCard.isActive() && (topCard.hasRank(Rank.DRAW_TWO) || topCard.hasRank(Rank.WILD_DRAW_FOUR))) {
 				incrementPlayerIndex(playOrder);
 				drawAfterWin();
@@ -395,7 +430,6 @@ public class Game implements ActionListener{
 		for (int i = 0; i < numPlayers(); i++) {
 			if (points[i] >= 500 && !gameOver) {
 				gameOver = true;
-				// TODO do something for player that won
 				status.setText(String.format("Player %d wins the game", i));
 				continueButton.setEnabled(false);
 				// TODO display points on screen
@@ -404,7 +438,6 @@ public class Game implements ActionListener{
 			}
 		}
 		// message for winner and set up prompt to next round
-		// TODO message for winner
 		status.setText(String.format("Player %d wins the round", currentPlayerIndex));
 		continueButton.setActionCommand("next round");
 		// TODO display points on screen
@@ -557,9 +590,9 @@ public class Game implements ActionListener{
 			}
 		}
 		// play or draw card
-		else if (ac.equals("play/draw")) {
+		else if (ac.equals("play/draw")) {inputField.setText("");
 			String inputText = inputField.getText();
-			inputField.setText("");
+			
 			if (hasDrawnCard && inputText.equals("")) {
 				// end turn
 				nextPlayer();
@@ -568,6 +601,7 @@ public class Game implements ActionListener{
 				// draw card
 				draw();
 			}
+			/*
 			else {
 				// play card at inputed index
 				int cardIndex;
@@ -582,11 +616,11 @@ public class Game implements ActionListener{
 				else {return;}
 				// only play card if it is allowed
 				// (a card that matches the top card, must be the card that was drawn if a card has been drawn)
-				if ((hasDrawnCard && cardIndex == currentPlayer().handSize() - 1)
-						|| currentPlayerHand().getMatches(pile.topCard()).contains(selectedCard)) {
+				if (cardIsPlayable(selectedCard)) {
 					play(selectedCard);
 				}
 			}
+			*/
 		}
 		// start next round
 		else if (ac.equals("next round")) {
